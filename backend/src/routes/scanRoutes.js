@@ -3,23 +3,36 @@ const router = express.Router();
 const scanController = require('../controllers/scanController');
 const { scanLimiter } = require('../middleware/rateLimiter');
 const { authenticateToken } = require('../middleware/authMiddleware');
+const { scanRequestSchema, scanUrlRequestSchema, validateBody } = require('../middleware/validationMiddleware');
 
-// Can scan payload with auth or guest demo token
-router.post('/scan', scanLimiter, (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  if (authHeader) {
-    return authenticateToken(req, res, next);
-  }
-  next();
-}, scanController.scanPayload);
+// Wire up Payload Security Scanner with Zod Validation
+router.post(
+  '/scan',
+  scanLimiter,
+  (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+      return authenticateToken(req, res, next);
+    }
+    next();
+  },
+  validateBody(scanRequestSchema),
+  scanController.scanPayload
+);
 
-// Can scan URL with auth or guest demo token
-router.post('/scan-url', scanLimiter, (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  if (authHeader) {
-    return authenticateToken(req, res, next);
-  }
-  next();
-}, scanController.scanUrl);
+// Wire up URL Phishing Scanner with Zod Validation
+router.post(
+  '/scan-url',
+  scanLimiter,
+  (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+      return authenticateToken(req, res, next);
+    }
+    next();
+  },
+  validateBody(scanUrlRequestSchema),
+  scanController.scanUrl
+);
 
 module.exports = router;
