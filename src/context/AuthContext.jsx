@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(true);
 
   // Hydrate user session safely on initial client render
   useEffect(() => {
@@ -15,14 +16,20 @@ export const AuthProvider = ({ children }) => {
         if (typeof window !== 'undefined') {
           const storedToken = localStorage.getItem('trustguard_token');
           const storedUser = localStorage.getItem('trustguard_user');
+          const customApiKey = localStorage.getItem('trustguard_live_api_key');
 
           if (storedToken && storedUser) {
             setToken(storedToken);
             setUser(JSON.parse(storedUser));
+            
+            // If user injected a custom live API key or non-demo token
+            if (customApiKey || (storedToken && !storedToken.includes('demo'))) {
+              setIsDemoMode(false);
+            }
           }
         }
       } catch (err) {
-        console.warn('Session hydration notice:', err);
+        // Silently hydrate default session
       } finally {
         setLoading(false);
       }
@@ -43,9 +50,10 @@ export const AuthProvider = ({ children }) => {
 
       setToken(authToken);
       setUser(userData);
+      setIsDemoMode(false);
       return userData;
     } catch (err) {
-      console.warn('API login notice, operating demo fallback session:', err);
+      // Gracefully pivot to demo session without exposing raw warning notices
       const fallbackUser = {
         id: 'usr-admin-01',
         email: credentials.email || 'admin@trustguard.ai',
@@ -61,6 +69,7 @@ export const AuthProvider = ({ children }) => {
 
       setToken(fallbackToken);
       setUser(fallbackUser);
+      setIsDemoMode(true);
       return fallbackUser;
     }
   };
@@ -77,9 +86,10 @@ export const AuthProvider = ({ children }) => {
 
       setToken(authToken);
       setUser(userData);
+      setIsDemoMode(false);
       return userData;
     } catch (err) {
-      console.warn('API registration notice, operating demo fallback session:', err);
+      // Gracefully pivot to demo session without exposing raw warning notices
       const fallbackUser = {
         id: `usr-${Date.now()}`,
         email: data.email || 'admin@trustguard.ai',
@@ -95,17 +105,32 @@ export const AuthProvider = ({ children }) => {
 
       setToken(fallbackToken);
       setUser(fallbackUser);
+      setIsDemoMode(true);
       return fallbackUser;
+    }
+  };
+
+  const setCustomApiKey = (key) => {
+    if (typeof window !== 'undefined') {
+      if (key && key.trim()) {
+        localStorage.setItem('trustguard_live_api_key', key.trim());
+        setIsDemoMode(false);
+      } else {
+        localStorage.removeItem('trustguard_live_api_key');
+        setIsDemoMode(true);
+      }
     }
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
+    setIsDemoMode(true);
 
     if (typeof window !== 'undefined') {
       localStorage.removeItem('trustguard_token');
       localStorage.removeItem('trustguard_user');
+      localStorage.removeItem('trustguard_live_api_key');
     }
   };
 
@@ -116,6 +141,8 @@ export const AuthProvider = ({ children }) => {
         token,
         isAuthenticated: !!token || (typeof window !== 'undefined' && !!localStorage.getItem('trustguard_token')),
         loading,
+        isDemoMode,
+        setCustomApiKey,
         login,
         register,
         logout,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, RefreshCw, RotateCcw } from 'lucide-react';
+import { ShieldAlert, RotateCcw } from 'lucide-react';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -26,7 +26,7 @@ class ErrorBoundary extends React.Component {
             <div className="space-y-2">
               <h3 className="text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Application Exception Intercepted</h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                An unexpected component state occurred. TrustGuard's resilience engine prevented application crash.
+                An unexpected component state occurred. TrustGuard's resilience engine prevented application downtime.
               </p>
             </div>
             {this.state.error?.message && (
@@ -39,9 +39,9 @@ class ErrorBoundary extends React.Component {
                 this.setState({ hasError: false, error: null });
                 window.location.reload();
               }}
-              className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 min-h-[44px]"
             >
-              <RotateCcw className="w-4 h-4" strokeWidth={1.5} /> Reset Security Console Session
+              <RotateCcw className="w-4 h-4" strokeWidth={1.5} /> Reload Console
             </button>
           </div>
         </div>

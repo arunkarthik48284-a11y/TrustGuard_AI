@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useOutletCont
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Sidebar from './components/Sidebar';
+import DemoModeBanner from './components/DemoModeBanner';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -14,7 +15,7 @@ import AuditLogs from './pages/AuditLogs';
 import Settings from './pages/Settings';
 
 const ProtectedLayout = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, isDemoMode } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   if (loading) {
@@ -35,8 +36,11 @@ const ProtectedLayout = () => {
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans">
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-      <div className="flex-1 overflow-x-hidden w-full">
-        <Outlet context={{ setMobileOpen }} />
+      <div className="flex-1 overflow-x-hidden w-full flex flex-col">
+        <DemoModeBanner isDemo={isDemoMode} />
+        <div className="flex-1">
+          <Outlet context={{ setMobileOpen }} />
+        </div>
       </div>
     </div>
   );

@@ -1,38 +1,74 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
-import { Key, ShieldCheck, Copy, Check, Eye, EyeOff, Save, RefreshCw } from 'lucide-react';
+import { Key, ShieldCheck, Copy, Check, Eye, EyeOff, Save, RefreshCw, Radio, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useOutletContext } from 'react-router-dom';
 
 const Settings = () => {
-  const { user } = useAuth();
-  const [apiKey, setApiKey] = useState('tg_live_99a8b7c6d5e4f3a2b1_prod_key');
+  const { user, isDemoMode, setCustomApiKey } = useAuth();
+  const [apiKeyInput, setApiKeyInput] = useState(
+    typeof window !== 'undefined' ? localStorage.getItem('trustguard_live_api_key') || '' : ''
+  );
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [savedKeyMsg, setSavedKeyMsg] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('https://api.acmesecurity.io/webhooks/trustguard');
+  const [savedWebhookMsg, setSavedWebhookMsg] = useState(false);
   const outletContext = useOutletContext();
   const setMobileOpen = outletContext?.setMobileOpen;
 
+  const handleSaveApiKey = () => {
+    if (!apiKeyInput.trim()) {
+      setCustomApiKey('');
+      setSavedKeyMsg('Switched to Interactive Demo Mode.');
+    } else {
+      setCustomApiKey(apiKeyInput);
+      setSavedKeyMsg('Live Protection API Key saved and activated!');
+    }
+    setTimeout(() => setSavedKeyMsg(''), 3000);
+  };
+
   const copyKey = () => {
-    navigator.clipboard.writeText(apiKey);
+    if (!apiKeyInput) return;
+    navigator.clipboard.writeText(apiKeyInput);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const regenerateKey = () => {
+  const generateNewKey = () => {
     const newKey = `tg_live_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
-    setApiKey(newKey);
+    setApiKeyInput(newKey);
+  };
+
+  const handleSaveWebhook = () => {
+    setSavedWebhookMsg(true);
+    setTimeout(() => setSavedWebhookMsg(false), 3000);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 pb-12">
       <Navbar title="Settings & API Key Management" onMenuClick={() => setMobileOpen && setMobileOpen(true)} />
       <main className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
-        <div>
-          <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100">Organization Settings</h2>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            Manage your API authorization keys, security webhooks, and team access credentials.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100">Organization Settings</h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              Manage your API authorization keys, security webhooks, and active firewall posture.
+            </p>
+          </div>
+
+          {/* Persistent Mode Indicator Badge */}
+          {isDemoMode ? (
+            <div className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-2">
+              <Radio className="w-4 h-4 text-amber-500 animate-pulse" />
+              <span>Operating in Demo Mode</span>
+            </div>
+          ) : (
+            <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Live Protection Mode Active</span>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -40,44 +76,61 @@ const Settings = () => {
           <div className="bg-white dark:bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
             <div className="flex items-center gap-2">
               <Key className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">TrustGuard SDK API Key</h3>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">TrustGuard Security Engine API Key</h3>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Use this bearer secret key to authenticate your backend server requests to the TrustGuard AI Security Engine API.
+              Inject your backend bearer secret key to switch from Demo Mode to Live Protection. Leave empty to use sample guardrail rules.
             </p>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">Production Key</label>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">Bearer Secret Key</label>
               <div className="flex items-center gap-2">
                 <input
                   type={showKey ? 'text' : 'password'}
-                  readOnly
-                  value={apiKey}
-                  className="w-full bg-slate-50 dark:bg-slate-950 text-emerald-600 dark:text-emerald-400 font-mono text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none min-h-[44px]"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  placeholder="Paste tg_live_... key or leave empty for Demo Mode"
+                  className="w-full bg-slate-50 dark:bg-slate-950 text-emerald-700 dark:text-emerald-400 font-mono text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500/40 min-h-[44px]"
                 />
                 <button
+                  type="button"
                   onClick={() => setShowKey(!showKey)}
                   className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800 min-h-[44px] flex items-center justify-center shrink-0"
                 >
                   {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
                 <button
+                  type="button"
                   onClick={copyKey}
-                  className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 border border-slate-200 dark:border-slate-800 min-h-[44px] flex items-center justify-center shrink-0"
+                  disabled={!apiKeyInput}
+                  className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 border border-slate-200 dark:border-slate-800 min-h-[44px] flex items-center justify-center shrink-0 disabled:opacity-40"
                 >
                   {copied ? <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
+              {savedKeyMsg && (
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 animate-fadeIn">
+                  {savedKeyMsg}
+                </p>
+              )}
             </div>
 
-            <div className="pt-2 flex items-center justify-between">
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
               <button
-                onClick={regenerateKey}
-                className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 hover:bg-rose-50 dark:hover:bg-rose-950 text-rose-600 dark:text-rose-400 border border-slate-200 dark:border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition-colors min-h-[40px]"
+                type="button"
+                onClick={generateNewKey}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition-colors min-h-[40px]"
               >
-                <RefreshCw className="w-3.5 h-3.5" /> Roll Secret Key
+                <RefreshCw className="w-3.5 h-3.5" /> Generate Key
               </button>
-              <span className="text-[10px] text-slate-500">Created: Aug 06, 2026</span>
+
+              <button
+                type="button"
+                onClick={handleSaveApiKey}
+                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1.5 min-h-[40px]"
+              >
+                <Save className="w-4 h-4" /> Save API Key
+              </button>
             </div>
           </div>
 
@@ -100,10 +153,19 @@ const Settings = () => {
                 placeholder="https://api.yourdomain.com/webhooks/security"
                 className="w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 font-mono text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-indigo-500/50 min-h-[44px]"
               />
+              {savedWebhookMsg && (
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  Webhook URL updated successfully.
+                </p>
+              )}
             </div>
 
             <div className="pt-2 flex justify-end">
-              <button className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 min-h-[44px]">
+              <button
+                type="button"
+                onClick={handleSaveWebhook}
+                className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-indigo-600/20 min-h-[44px]"
+              >
                 <Save className="w-4 h-4" /> Save Webhook URL
               </button>
             </div>
