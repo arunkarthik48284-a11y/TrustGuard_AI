@@ -42,11 +42,12 @@ const PII_PATTERNS = [
   },
   {
     type: 'PHONE_NUMBER',
-    regex: /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g,
+    regex: /(?:\+\d{1,4}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{2,5}[-.\s]?\d{3,6}\b|\b\d{10,15}\b/g,
     maskFn: (match) => {
       const digits = match.replace(/\D/g, '');
       const last4 = digits.slice(-4) || 'XXXX';
-      return `[PHONE_REDACTED: ***-***-${last4}]`;
+      const hasPlus = match.startsWith('+');
+      return `[PHONE_REDACTED: ${hasPlus ? '+' : ''}***-***-${last4}]`;
     }
   },
   {
