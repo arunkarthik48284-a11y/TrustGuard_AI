@@ -58,7 +58,7 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
   return (
     <div className="space-y-4">
       {/* Search & Filter Header Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-slate-900/70 backdrop-blur-md p-4 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-slate-900/70 dark:bg-slate-900/70 light:bg-white backdrop-blur-md p-4 rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-200">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -66,7 +66,7 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
             value={searchTerm}
             onChange={handleSearchChange}
             placeholder="Search audit logs by payload, log ID, or threat..."
-            className="w-full bg-slate-950 text-slate-200 text-xs pl-10 pr-4 py-3 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500/50 min-h-[44px]"
+            className="w-full bg-slate-950 dark:bg-slate-950 light:bg-slate-50 text-slate-200 dark:text-slate-200 light:text-slate-900 text-xs pl-10 pr-4 py-3 rounded-xl border border-slate-800 dark:border-slate-800 light:border-slate-200 focus:outline-none focus:border-emerald-500/50 min-h-[44px]"
           />
         </div>
 
@@ -74,7 +74,7 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
           {/* Export Report Button */}
           <button
             onClick={exportCSV}
-            className="px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-emerald-400 font-semibold text-xs transition-colors border border-slate-800 flex items-center justify-center gap-1.5 min-h-[44px] w-full sm:w-auto"
+            className="px-4 py-2.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-800 light:hover:bg-slate-200 text-emerald-400 dark:text-emerald-400 light:text-emerald-600 font-semibold text-xs transition-colors border border-slate-800 dark:border-slate-800 light:border-slate-200 flex items-center justify-center gap-1.5 min-h-[44px] w-full sm:w-auto"
           >
             <Download className="w-4 h-4" />
             <span>Export CSV</span>
@@ -89,8 +89,8 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
             key={lvl}
             onClick={() => handleFilterClick(lvl)}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors min-h-[38px] shrink-0 ${filterLevel === lvl
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                : 'bg-slate-900/60 text-slate-400 hover:bg-slate-800 border border-slate-800'
+                ? 'bg-emerald-500/20 text-emerald-400 dark:text-emerald-400 light:text-emerald-600 border border-emerald-500/40'
+                : 'bg-slate-900/60 dark:bg-slate-900/60 light:bg-white text-slate-400 dark:text-slate-400 light:text-slate-600 hover:bg-slate-800 dark:hover:bg-slate-800 light:hover:bg-slate-100 border border-slate-800 dark:border-slate-800 light:border-slate-200'
               }`}
           >
             {lvl}
@@ -99,10 +99,10 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
       </div>
 
       {/* Audit Log Table Container */}
-      <div className="bg-slate-900/70 backdrop-blur-md rounded-2xl overflow-hidden border border-slate-800">
+      <div className="bg-slate-900/70 dark:bg-slate-900/70 light:bg-white backdrop-blur-md rounded-2xl overflow-hidden border border-slate-800 dark:border-slate-800 light:border-slate-200">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider">
+            <thead className="bg-slate-950 dark:bg-slate-950 light:bg-slate-100 text-slate-400 dark:text-slate-400 light:text-slate-600 font-semibold border-b border-slate-800 dark:border-slate-800 light:border-slate-200 uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4">Log ID & Timestamp</th>
                 <th className="py-3.5 px-4">Payload Input Snippet</th>
@@ -112,7 +112,7 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className="divide-y divide-slate-800/60 dark:divide-slate-800/60 light:divide-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-800">
               {loading ? (
                 <tr>
                   <td colSpan="6" className="py-8 text-center text-slate-500">
@@ -127,16 +127,16 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
                 </tr>
               ) : (
                 logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={log.id} className="hover:bg-slate-800/40 dark:hover:bg-slate-800/40 light:hover:bg-slate-50 transition-colors">
                     <td className="py-3.5 px-4 font-mono text-[11px]">
-                      <div className="font-semibold text-emerald-400">{(log.id || '').slice(0, 16)}...</div>
+                      <div className="font-semibold text-emerald-400 dark:text-emerald-400 light:text-emerald-600">{(log.id || '').slice(0, 16)}...</div>
                       <div className="text-[10px] text-slate-500 mt-0.5">{new Date(log.created_at || Date.now()).toLocaleString()}</div>
                     </td>
-                    <td className="py-3.5 px-4 max-w-xs truncate font-mono text-slate-300">
+                    <td className="py-3.5 px-4 max-w-xs truncate font-mono text-slate-300 dark:text-slate-300 light:text-slate-700">
                       {log.original_input}
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-white">
-                      <span className={`px-2.5 py-1 rounded text-xs font-mono ${(log.risk_score || 0) >= 70 ? 'bg-rose-950 text-rose-400 border border-rose-500/30' : 'bg-slate-950 text-emerald-400 border border-slate-800'
+                    <td className="py-3.5 px-4 font-bold">
+                      <span className={`px-2.5 py-1 rounded text-xs font-mono ${(log.risk_score || 0) >= 70 ? 'bg-rose-950 dark:bg-rose-950 light:bg-rose-100 text-rose-400 dark:text-rose-400 light:text-rose-700 border border-rose-500/30' : 'bg-slate-950 dark:bg-slate-950 light:bg-slate-100 text-emerald-400 dark:text-emerald-400 light:text-emerald-700 border border-slate-800 dark:border-slate-800 light:border-slate-200'
                         }`}>
                         {log.risk_score || 0} / 100
                       </span>
@@ -145,14 +145,14 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
                       <StatusBadge level={log.max_risk_level || 'low'} isBlocked={Boolean(log.is_blocked)} />
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="text-slate-400 font-medium">
+                      <span className="text-slate-400 dark:text-slate-400 light:text-slate-600 font-medium">
                         {Array.isArray(log.pii_detected) ? log.pii_detected.length : 0} PII token(s)
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <button
                         onClick={() => setSelectedLog(log)}
-                        className="px-3 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-emerald-400 border border-slate-800 transition-colors inline-flex items-center gap-1.5 font-semibold min-h-[36px]"
+                        className="px-3 py-1.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-800 light:hover:bg-slate-200 text-emerald-400 dark:text-emerald-400 light:text-emerald-600 border border-slate-800 dark:border-slate-800 light:border-slate-200 transition-colors inline-flex items-center gap-1.5 font-semibold min-h-[36px]"
                       >
                         <Eye className="w-3.5 h-3.5" /> Inspect
                       </button>
@@ -166,22 +166,22 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
 
         {/* Pagination Footer */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between text-xs text-slate-400">
+          <div className="p-4 border-t border-slate-800 dark:border-slate-800 light:border-slate-200 bg-slate-950/80 dark:bg-slate-950/80 light:bg-slate-50 flex items-center justify-between text-xs text-slate-400 dark:text-slate-400 light:text-slate-600">
             <span>
-              Page <strong className="text-slate-100">{pagination.page}</strong> of <strong className="text-slate-100">{pagination.totalPages}</strong> ({pagination.total} logs)
+              Page <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900">{pagination.page}</strong> of <strong className="text-slate-100 dark:text-slate-100 light:text-slate-900">{pagination.totalPages}</strong> ({pagination.total} logs)
             </span>
             <div className="flex items-center gap-2">
               <button
                 disabled={pagination.page <= 1}
                 onClick={() => onPageChange && onPageChange(pagination.page - 1)}
-                className="p-2 rounded-xl bg-slate-900 text-slate-300 border border-slate-800 disabled:opacity-40 min-h-[36px]"
+                className="p-2 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 text-slate-300 dark:text-slate-300 light:text-slate-700 border border-slate-800 dark:border-slate-800 light:border-slate-200 disabled:opacity-40 min-h-[36px]"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 disabled={pagination.page >= pagination.totalPages}
                 onClick={() => onPageChange && onPageChange(pagination.page + 1)}
-                className="p-2 rounded-xl bg-slate-900 text-slate-300 border border-slate-800 disabled:opacity-40 min-h-[36px]"
+                className="p-2 rounded-xl bg-slate-900 dark:bg-slate-900 light:bg-slate-100 text-slate-300 dark:text-slate-300 light:text-slate-700 border border-slate-800 dark:border-slate-800 light:border-slate-200 disabled:opacity-40 min-h-[36px]"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -193,10 +193,10 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
       {/* Inspect Log Detail Modal Drawer */}
       {selectedLog && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-5 shadow-2xl relative">
+          <div className="bg-slate-900 dark:bg-slate-900 light:bg-white border border-slate-800 dark:border-slate-800 light:border-slate-200 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-5 shadow-2xl relative">
             <button
               onClick={() => setSelectedLog(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 p-2 rounded-xl bg-slate-950 border border-slate-800"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-100 p-2 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-100 border border-slate-800 dark:border-slate-800 light:border-slate-200"
             >
               <X className="w-5 h-5" />
             </button>
@@ -206,43 +206,43 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
                 <FileSpreadsheet className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-100">Security Scan Audit Record</h3>
-                <p className="text-xs font-mono text-slate-400">{selectedLog.id}</p>
+                <h3 className="text-base font-bold text-slate-100 dark:text-slate-100 light:text-slate-900">Security Scan Audit Record</h3>
+                <p className="text-xs font-mono text-slate-400 dark:text-slate-400 light:text-slate-600">{selectedLog.id}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 dark:bg-slate-950 light:bg-slate-50 p-3 rounded-xl border border-slate-800 dark:border-slate-800 light:border-slate-200 text-xs">
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Risk Level</span>
+                <span className="text-slate-400 dark:text-slate-400 light:text-slate-500 block text-[10px] uppercase">Risk Level</span>
                 <StatusBadge level={selectedLog.max_risk_level || 'low'} isBlocked={Boolean(selectedLog.is_blocked)} />
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Risk Score</span>
-                <span className="font-extrabold text-slate-100 text-sm">{selectedLog.risk_score || 0} / 100</span>
+                <span className="text-slate-400 dark:text-slate-400 light:text-slate-500 block text-[10px] uppercase">Risk Score</span>
+                <span className="font-extrabold text-slate-100 dark:text-slate-100 light:text-slate-900 text-sm">{selectedLog.risk_score || 0} / 100</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Action Taken</span>
-                <span className={`font-bold ${selectedLog.is_blocked ? 'text-rose-400' : 'text-emerald-400'}`}>
+                <span className="text-slate-400 dark:text-slate-400 light:text-slate-500 block text-[10px] uppercase">Action Taken</span>
+                <span className={`font-bold ${selectedLog.is_blocked ? 'text-rose-400' : 'text-emerald-500'}`}>
                   {selectedLog.is_blocked ? 'BLOCKED Payload' : 'PROCESSED & Masked'}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase">Timestamp</span>
-                <span className="text-slate-300 font-mono">{new Date(selectedLog.created_at || Date.now()).toLocaleTimeString()}</span>
+                <span className="text-slate-400 dark:text-slate-400 light:text-slate-500 block text-[10px] uppercase">Timestamp</span>
+                <span className="text-slate-300 dark:text-slate-300 light:text-slate-700 font-mono">{new Date(selectedLog.created_at || Date.now()).toLocaleTimeString()}</span>
               </div>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Original Input Payload</label>
-                <div className="bg-slate-950 text-slate-200 text-xs font-mono p-3 rounded-xl border border-slate-800 whitespace-pre-wrap leading-relaxed">
+                <label className="text-xs font-bold text-slate-400 dark:text-slate-400 light:text-slate-600 uppercase tracking-wider block mb-1">Original Input Payload</label>
+                <div className="bg-slate-950 dark:bg-slate-950 light:bg-slate-50 text-slate-200 dark:text-slate-200 light:text-slate-900 text-xs font-mono p-3 rounded-xl border border-slate-800 dark:border-slate-800 light:border-slate-200 whitespace-pre-wrap leading-relaxed">
                   {selectedLog.original_input}
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Sanitized Output Payload</label>
-                <div className="bg-slate-950 text-emerald-400 text-xs font-mono p-3 rounded-xl border border-slate-800 whitespace-pre-wrap leading-relaxed">
+                <label className="text-xs font-bold text-slate-400 dark:text-slate-400 light:text-slate-600 uppercase tracking-wider block mb-1">Sanitized Output Payload</label>
+                <div className="bg-slate-950 dark:bg-slate-950 light:bg-slate-900 text-emerald-400 text-xs font-mono p-3 rounded-xl border border-slate-800 dark:border-slate-800 light:border-slate-200 whitespace-pre-wrap leading-relaxed">
                   {selectedLog.processed_output}
                 </div>
               </div>
@@ -252,7 +252,7 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
                   <label className="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-1">PII Masked Tokens</label>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedLog.pii_detected.map((p, idx) => (
-                      <span key={idx} className="text-xs px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 font-mono">
+                      <span key={idx} className="text-xs px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 dark:text-amber-300 light:text-amber-700 border border-amber-500/30 font-mono">
                         [{p.type || 'PII'}] {p.value || JSON.stringify(p)}
                       </span>
                     ))}
@@ -264,7 +264,7 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setSelectedLog(null)}
-                className="px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-bold border border-slate-800 min-h-[44px]"
+                className="px-4 py-2.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-100 hover:bg-slate-800 text-slate-200 dark:text-slate-200 light:text-slate-800 text-xs font-bold border border-slate-800 dark:border-slate-800 light:border-slate-200 min-h-[44px]"
               >
                 Close Audit Record
               </button>
