@@ -5,6 +5,7 @@ import {
   LayoutDashboard, 
   ScanLine, 
   Globe,
+  Bot,
   SlidersHorizontal, 
   FileSpreadsheet, 
   Settings, 
@@ -23,6 +24,7 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'AI Guardrail Scanner', path: '/scanner', icon: ScanLine },
+    { label: 'Agentic Tool Interceptor', path: '/agentic-intercept', icon: Bot },
     { label: 'URL Security Scanner', path: '/url-scanner', icon: Globe },
     { label: 'Security Policies', path: '/policies', icon: SlidersHorizontal },
     { label: 'Audit Logs & Compliance', path: '/audit-logs', icon: FileSpreadsheet },
