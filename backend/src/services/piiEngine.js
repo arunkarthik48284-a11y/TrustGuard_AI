@@ -42,7 +42,7 @@ const PII_PATTERNS = [
   },
   {
     type: 'PHONE_NUMBER',
-    regex: /(?:\+\d{1,4}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{2,5}[-.\s]?\d{3,6}\b|\b\d{10,15}\b/g,
+    regex: /\b\d{10,15}\b|(?:\+\d{1,4}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{2,5}[-.\s]?\d{3,6}\b/g,
     maskFn: (match) => {
       const digits = match.replace(/\D/g, '');
       const last4 = digits.slice(-4) || 'XXXX';
