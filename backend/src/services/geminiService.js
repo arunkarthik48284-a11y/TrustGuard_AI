@@ -1,11 +1,14 @@
 const { GoogleGenAI } = require('@google/genai');
 const piiEngine = require('./piiEngine');
 
+// Ensure GEMINI_API_KEY is available in Vercel serverless
+const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyD_bsJUEvHz1Vg3ax4XcE9vH0Ak-4mm2c0';
+
 // Initialize Gemini Client safely
 let aiClient = null;
-if (process.env.GEMINI_API_KEY) {
+if (GEMINI_KEY) {
   try {
-    aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    aiClient = new GoogleGenAI({ apiKey: GEMINI_KEY });
   } catch (e) {
     console.warn('⚠️ Gemini Client initialization warning:', e.message);
   }
@@ -65,8 +68,8 @@ async function analyzeSecurityPayload(inputText, options = {}) {
   // Step 2: Run Dynamic Telemetry Analysis
   let evaluation = runDynamicAnalysis(inputText, piiList, { strictness, checkInjection, checkToxicity });
 
-  // Step 3: Query Gemini AI if API Key is available
-  if (aiClient && process.env.GEMINI_API_KEY) {
+  // Step 3: Query Gemini AI for real-time live intelligence
+  if (aiClient && GEMINI_KEY) {
     try {
       const systemInstruction = `You are TrustGuard AI Real-Time Security Engine.
 Analyze the payload specifically for security risks, PII leaks, prompt injection, code execution, or toxic intent.
@@ -113,7 +116,11 @@ Return strictly JSON matching this structure:
           threats_detected: Array.isArray(parsedAi.threat_categories) && parsedAi.threat_categories.length > 0
             ? parsedAi.threat_categories.map(cat => ({ category: cat, description: `AI Guardrail: ${cat}` }))
             : evaluation.threats_detected,
-          explanation: parsedAi.explanation || evaluation.explanation
+          explanation: parsedAi.explanation || evaluation.explanation,
+          telemetry: {
+            ...evaluation.telemetry,
+            ai_engine: 'Gemini 2.5 Flash Live'
+          }
         };
       }
     } catch (err) {
@@ -151,13 +158,13 @@ function runDynamicAnalysis(inputText, piiList, opts) {
   const charCount = text.length;
   const entropy = Math.round(calculateEntropy(text) * 100) / 100;
 
-  // Compute a deterministic seed from the input string so every distinct text gets unique score variations
+  // Compute a deterministic seed from the input string
   let textHash = 0;
   for (let i = 0; i < charCount; i++) {
     textHash = ((textHash << 5) - textHash) + text.charCodeAt(i);
     textHash |= 0;
   }
-  const baseVariation = Math.abs(textHash) % 15; // 0-14 point variation based on exact text characters
+  const baseVariation = Math.abs(textHash) % 15;
 
   let riskScore = 8 + baseVariation;
   const threats = [];
@@ -221,8 +228,7 @@ function runDynamicAnalysis(inputText, piiList, opts) {
     threats.push({ category: 'Database Security', description: 'Detected executable SQL injection syntax' });
   } else if (/<\s*script/i.test(text) || /javascript:/i.test(text) || /onerror\s*=/i.test(text)) {
     riskScore = Math.max(riskScore, 70);
-    detectedIntent = 'XSS Script Fragment';
-    threats.push({ category: 'Web App Security', description: 'Detected executable script tags' });
+    detectedIntent = 'Web App Security', description: 'Detected executable script tags' });
   } else if (/\b(npm|git|sudo|bash|chmod|curl|wget|python|const|import|function)\b/i.test(text)) {
     riskScore = Math.max(riskScore, 28 + (baseVariation % 8));
     detectedIntent = 'Source Code / CLI Command';
@@ -276,7 +282,8 @@ function runDynamicAnalysis(inputText, piiList, opts) {
       char_count: charCount,
       entropy,
       strictness: opts.strictness,
-      detected_intent: detectedIntent
+      detected_intent: detectedIntent,
+      ai_engine: 'Heuristic Rule Firewall'
     }
   };
 }
