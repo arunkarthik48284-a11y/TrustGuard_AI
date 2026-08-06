@@ -5,61 +5,84 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('trustguard_token') || null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Hydrate user session safely on initial client render
   useEffect(() => {
     const initAuth = async () => {
-      if (token) {
-        try {
-          const res = await authAPI.getMe();
-          setUser(res.data.user);
-        } catch (err) {
-          console.warn('Token verification failed, clearing session.', err);
-          logout();
+      try {
+        if (typeof window !== 'undefined') {
+          const storedToken = localStorage.getItem('trustguard_token');
+          const storedUser = localStorage.getItem('trustguard_user');
+
+          if (storedToken && storedUser) {
+            setToken(storedToken);
+            setUser(JSON.parse(storedUser));
+          }
         }
-      } else {
-        // Demo default user session so reviewers can instantly browse
-        setUser({
-          id: 'usr-admin-01',
-          email: 'admin@trustguard.ai',
-          role: 'admin',
-          organization_id: 'org-101-demo-trustguard',
-          organization_name: 'CyberShield Enterprise Inc.'
-        });
+      } catch (err) {
+        console.warn('Session hydration warning:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initAuth();
-  }, [token]);
+  }, []);
 
   const login = async (credentials) => {
     const res = await authAPI.login(credentials);
-    const { token: newToken, user: userData } = res.data;
-    localStorage.setItem('trustguard_token', newToken);
-    setToken(newToken);
+    const { token: authToken, user: userData } = res.data;
+
+    setToken(authToken);
     setUser(userData);
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('trustguard_token', authToken);
+      localStorage.setItem('trustguard_user', JSON.stringify(userData));
+    }
+
     return userData;
   };
 
   const register = async (data) => {
     const res = await authAPI.register(data);
-    const { token: newToken, user: userData } = res.data;
-    localStorage.setItem('trustguard_token', newToken);
-    setToken(newToken);
+    const { token: authToken, user: userData } = res.data;
+
+    setToken(authToken);
     setUser(userData);
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('trustguard_token', authToken);
+      localStorage.setItem('trustguard_user', JSON.stringify(userData));
+    }
+
     return userData;
   };
 
   const logout = () => {
-    localStorage.removeItem('trustguard_token');
     setToken(null);
     setUser(null);
+
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('trustguard_token');
+      localStorage.removeItem('trustguard_user');
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, isAuthenticated: Boolean(user) }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isAuthenticated: !!token,
+        loading,
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

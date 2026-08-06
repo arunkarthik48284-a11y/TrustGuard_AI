@@ -2,13 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, 
   ScanLine, 
-  Eye, 
-  ShieldCheck, 
   Lock, 
   FileCheck2, 
-  TrendingUp,
-  AlertTriangle,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import MetricCard from '../components/MetricCard';
@@ -21,25 +18,33 @@ const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
   const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
 
+  const fetchData = async () => {
+    try {
+      const [metricsRes, logsRes] = await Promise.all([
+        securityAPI.getMetrics(),
+        securityAPI.getLogs({ page: 1, limit: 5 })
+      ]);
+      setMetrics(metricsRes.data.metrics);
+      setRecentLogs(logsRes.data.logs || []);
+    } catch (err) {
+      console.warn('Dashboard telemetry fetch notice:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [metricsRes, logsRes] = await Promise.all([
-          securityAPI.getMetrics(),
-          securityAPI.getLogs({ page: 1, limit: 5 })
-        ]);
-        setMetrics(metricsRes.data.metrics);
-        setRecentLogs(logsRes.data.logs || []);
-      } catch (err) {
-        console.warn('Failed to load dashboard metrics, using initial state:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
 
   const defaultCategoryData = [
     { category: 'Prompt Injection', count: 42 },
@@ -61,9 +66,18 @@ const Dashboard = () => {
         <div className="relative rounded-3xl p-6 bg-gradient-to-r from-cyan-950/60 via-indigo-950/40 to-gray-900 border border-cyan-500/30 overflow-hidden shadow-2xl">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 inline-flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" /> Google Gemini 2.5 Flash Guardrails Active
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 inline-flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" /> Google Gemini 2.5 Flash Guardrails Active
+                </span>
+                <button
+                  onClick={handleRefresh}
+                  className="p-1 rounded-lg bg-gray-900 text-gray-400 hover:text-cyan-400 border border-gray-800"
+                  title="Refresh Telemetry"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-cyan-400' : ''}`} />
+                </button>
+              </div>
               <h2 className="text-2xl font-black text-white tracking-tight">
                 AI Threat Intelligence & Data Redaction Engine
               </h2>
@@ -81,49 +95,60 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Metric Cards Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <MetricCard
-            title="Total Payloads Scanned"
-            value={metrics?.totalScans || 1240}
-            change="+18.4% vs last week"
-            isPositive={true}
-            icon={ScanLine}
-            color="cyan"
-            subtitle="Real-Time API Interceptions"
-          />
-          <MetricCard
-            title="Threats Intercepted"
-            value={metrics?.flaggedThreats || 148}
-            change="-4.2% threat rate"
-            isPositive={true}
-            icon={ShieldAlert}
-            color="rose"
-            subtitle="Blocked Prompt Injections"
-          />
-          <MetricCard
-            title="PII Tokens Redacted"
-            value={metrics?.piiMaskedCount || 412}
-            change="+28 Token Redactions"
-            isPositive={true}
-            icon={Lock}
-            color="violet"
-            subtitle="Emails, SSNs, CCs, Keys"
-          />
-          <MetricCard
-            title="Compliance Score"
-            value={`${metrics?.overallCompliance || 96}%`}
-            change="SOC 2 & GDPR Ready"
-            isPositive={true}
-            icon={FileCheck2}
-            color="emerald"
-            subtitle="Cryptographic Audit Verified"
-          />
-        </div>
+        {/* Metric Cards Row (with Skeleton Loaders) */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-32 bg-gray-900/60 rounded-2xl border border-gray-800 animate-pulse p-4 space-y-3">
+                <div className="w-1/2 h-4 bg-gray-800 rounded"></div>
+                <div className="w-3/4 h-8 bg-gray-800 rounded"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <MetricCard
+              title="Total Payloads Scanned"
+              value={metrics?.totalScans || 1240}
+              change="+18.4% vs last week"
+              isPositive={true}
+              icon={ScanLine}
+              color="cyan"
+              subtitle="Real-Time API Interceptions"
+            />
+            <MetricCard
+              title="Threats Intercepted"
+              value={metrics?.flaggedThreats || 148}
+              change="-4.2% threat rate"
+              isPositive={true}
+              icon={ShieldAlert}
+              color="rose"
+              subtitle="Blocked Prompt Injections"
+            />
+            <MetricCard
+              title="PII Tokens Redacted"
+              value={metrics?.piiMaskedCount || 412}
+              change="+28 Token Redactions"
+              isPositive={true}
+              icon={Lock}
+              color="violet"
+              subtitle="Emails, SSNs, CCs, Keys"
+            />
+            <MetricCard
+              title="Compliance Score"
+              value={`${metrics?.overallCompliance || 96}%`}
+              change="SOC 2 & GDPR Ready"
+              isPositive={true}
+              icon={FileCheck2}
+              color="emerald"
+              subtitle="Cryptographic Audit Verified"
+            />
+          </div>
+        )}
 
         {/* Charts & Analytics Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Area Chart (2 Cols) */}
+          {/* Main Area Chart */}
           <div className="lg:col-span-2 glass-panel p-5 rounded-2xl border border-gray-800 space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -142,7 +167,7 @@ const Dashboard = () => {
             <ThreatChart data={metrics?.threatTrends || []} type="area" />
           </div>
 
-          {/* Compliance Readiness Scorecard (1 Col) */}
+          {/* Compliance Readiness Scorecard */}
           <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-4">
             <div>
               <h3 className="text-base font-bold text-white">Compliance Scorecard</h3>
