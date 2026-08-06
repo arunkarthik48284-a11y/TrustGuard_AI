@@ -88,8 +88,8 @@ const URLScanner = () => {
   return (
     <div className="space-y-6">
       {/* Sample Payload Shortcuts Bar */}
-      <div className="bg-slate-900/70 backdrop-blur-md p-4 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-slate-300 font-semibold">
+      <div className="bg-slate-900/70 dark:bg-slate-900/70 light:bg-white backdrop-blur-md p-4 rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs text-slate-300 dark:text-slate-300 light:text-slate-700 font-semibold">
           <Sparkles className="w-4 h-4 text-emerald-400" strokeWidth={1.5} />
           <span>Quick Sample Web Targets:</span>
         </div>
@@ -102,7 +102,7 @@ const URLScanner = () => {
                 setScanResult(null);
                 setErrorMsg('');
               }}
-              className="px-3 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-xs text-slate-300 border border-slate-800 transition-all font-medium min-h-[40px] flex items-center"
+              className="px-3 py-2 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-800 light:hover:bg-slate-200 text-xs text-slate-300 dark:text-slate-300 light:text-slate-800 border border-slate-800 dark:border-slate-800 light:border-slate-200 transition-all font-medium min-h-[40px] flex items-center"
             >
               {sample.label}
             </button>
@@ -126,10 +126,10 @@ const URLScanner = () => {
       {/* 50/50 Split Screen Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Side: URL Input & Controls */}
-        <div className="bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-5">
+        <div className="bg-slate-900/70 dark:bg-slate-900/70 light:bg-white backdrop-blur-md p-6 rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-200 flex flex-col justify-between space-y-5">
           <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2 text-slate-100 font-bold text-sm">
+            <div className="flex items-center justify-between border-b border-slate-800 dark:border-slate-800 light:border-slate-200 pb-3">
+              <div className="flex items-center gap-2 text-slate-100 dark:text-slate-100 light:text-slate-900 font-bold text-sm">
                 <Globe className="w-4 h-4 text-emerald-400" strokeWidth={1.5} />
                 <span>Target Web Link</span>
               </div>
@@ -139,14 +139,14 @@ const URLScanner = () => {
                   setScanResult(null);
                   setErrorMsg('');
                 }}
-                className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 font-medium min-h-[36px]"
+                className="text-xs text-slate-400 hover:text-slate-200 dark:hover:text-slate-200 light:hover:text-slate-800 flex items-center gap-1 font-medium min-h-[36px]"
               >
                 <RotateCcw className="w-3.5 h-3.5" strokeWidth={1.5} /> Reset
               </button>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
+              <label className="text-xs font-bold text-slate-300 dark:text-slate-300 light:text-slate-700 uppercase tracking-wider block">
                 Website URL or Domain Name
               </label>
               <div className="relative">
@@ -159,27 +159,27 @@ const URLScanner = () => {
                     setErrorMsg('');
                   }}
                   placeholder="https://suspicious-login-site.com"
-                  className="w-full bg-slate-950 text-slate-200 font-mono text-xs pl-10 pr-4 py-3.5 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500/40 min-h-[48px]"
+                  className="w-full bg-slate-950 dark:bg-slate-950 light:bg-slate-50 text-slate-200 dark:text-slate-200 light:text-slate-900 font-mono text-xs pl-10 pr-4 py-3.5 rounded-xl border border-slate-800 dark:border-slate-800 light:border-slate-200 focus:outline-none focus:border-emerald-500/40 min-h-[48px]"
                 />
               </div>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-slate-800">
+            <div className="space-y-2 pt-2 border-t border-slate-800 dark:border-slate-800 light:border-slate-200">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                <label className="text-xs font-bold text-slate-300 dark:text-slate-300 light:text-slate-700 uppercase tracking-wider">
                   Threat Posture
                 </label>
                 <select
                   value={strictness}
                   onChange={(e) => setStrictness(e.target.value)}
-                  className="bg-slate-950 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500/40 uppercase min-h-[40px]"
+                  className="bg-slate-950 dark:bg-slate-950 light:bg-slate-50 text-slate-200 dark:text-slate-200 light:text-slate-900 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-800 dark:border-slate-800 light:border-slate-200 focus:outline-none focus:border-emerald-500/40 uppercase min-h-[40px]"
                 >
                   <option value="low">Standard Lookup</option>
                   <option value="medium">Enhanced Phishing Check</option>
                   <option value="paranoid">Zero-Trust Deep Inspection</option>
                 </select>
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-400 dark:text-slate-400 light:text-slate-500 leading-relaxed">
                 Inspects domain typosquatting, brand spoofing, SSL trust status, IP host routing, and high-risk TLD extensions.
               </p>
             </div>
@@ -204,29 +204,29 @@ const URLScanner = () => {
         </div>
 
         {/* Right Side: Formatted Threat Output */}
-        <div className="bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col justify-between min-h-[440px]">
+        <div className="bg-slate-900/70 dark:bg-slate-900/70 light:bg-white backdrop-blur-md p-6 rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-200 flex flex-col justify-between min-h-[440px]">
           {scanning ? (
             <div className="my-auto text-center space-y-4 p-8">
               <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto">
                 <Radio className="w-7 h-7 text-emerald-400 animate-pulse" strokeWidth={1.5} />
               </div>
-              <h4 className="text-sm font-bold text-slate-100">Analyzing Domain Reputation with Gemini AI...</h4>
-              <div className="w-48 mx-auto h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <h4 className="text-sm font-bold text-slate-100 dark:text-slate-100 light:text-slate-900">Analyzing Domain Reputation with Gemini AI...</h4>
+              <div className="w-48 mx-auto h-1.5 bg-slate-950 dark:bg-slate-950 light:bg-slate-200 rounded-full overflow-hidden border border-slate-800 dark:border-slate-800 light:border-slate-300">
                 <div className="h-full bg-emerald-400 transition-all duration-300" style={{ width: `${progress}%` }}></div>
               </div>
             </div>
           ) : scanResult ? (
             <div className="space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center justify-between border-b border-slate-800 dark:border-slate-800 light:border-slate-200 pb-3">
                 <div className="flex items-center gap-2">
                   <Code2 className="w-4 h-4 text-emerald-400" strokeWidth={1.5} />
-                  <span className="text-slate-100 font-bold text-sm">Threat Analysis Result</span>
+                  <span className="text-slate-100 dark:text-slate-100 light:text-slate-900 font-bold text-sm">Threat Analysis Result</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <StatusBadge level={scanResult.risk_level || 'low'} isBlocked={Boolean(scanResult.is_blocked)} />
                   <button
                     onClick={copyJSON}
-                    className="px-3 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-xs text-slate-300 border border-slate-800 flex items-center gap-1.5 font-semibold min-h-[36px]"
+                    className="px-3 py-1.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-800 light:hover:bg-slate-200 text-xs text-slate-300 dark:text-slate-300 light:text-slate-800 border border-slate-800 dark:border-slate-800 light:border-slate-200 flex items-center gap-1.5 font-semibold min-h-[36px]"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.5} /> : <Copy className="w-3.5 h-3.5" strokeWidth={1.5} />}
                     {copied ? 'Copied' : 'Copy JSON'}
@@ -236,32 +236,32 @@ const URLScanner = () => {
 
               {/* Domain Rating & Telemetry Matrix */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                <div className="p-2.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-50 border border-slate-800 dark:border-slate-800 light:border-slate-200 flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Target Domain</span>
-                  <span className="text-xs font-bold text-slate-200 truncate">{scanResult.domain}</span>
+                  <span className="text-xs font-bold text-slate-200 dark:text-slate-200 light:text-slate-800 truncate">{scanResult.domain}</span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                <div className="p-2.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-50 border border-slate-800 dark:border-slate-800 light:border-slate-200 flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase">SSL Protocol</span>
                   <span className={`text-xs font-bold truncate ${scanResult.protocol === 'https' ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {scanResult.protocol?.toUpperCase()}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                <div className="p-2.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-50 border border-slate-800 dark:border-slate-800 light:border-slate-200 flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Reputation Score</span>
                   <span className={`text-xs font-bold ${domainInfo.reputation_score > 70 ? 'text-emerald-400' : 'text-amber-400'}`}>
                     {domainInfo.reputation_score} / 100
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                <div className="p-2.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-50 border border-slate-800 dark:border-slate-800 light:border-slate-200 flex flex-col">
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Host IP</span>
-                  <span className="text-xs font-mono font-semibold text-slate-300 truncate">{domainInfo.ip_address}</span>
+                  <span className="text-xs font-mono font-semibold text-slate-300 dark:text-slate-300 light:text-slate-700 truncate">{domainInfo.ip_address}</span>
                 </div>
               </div>
 
               {/* Target URL Display */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Web Link</label>
-                <div className="p-3 rounded-xl bg-slate-950 text-slate-200 font-mono text-xs border border-slate-800 break-all flex items-center justify-between gap-2">
+                <div className="p-3 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-50 text-slate-200 dark:text-slate-200 light:text-slate-800 font-mono text-xs border border-slate-800 dark:border-slate-800 light:border-slate-200 break-all flex items-center justify-between gap-2">
                   <span className="truncate">{scanResult.target_url}</span>
                   <a href={scanResult.target_url} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-emerald-400 shrink-0">
                     <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -289,28 +289,28 @@ const URLScanner = () => {
 
               {/* Audit Explanation */}
               {scanResult.explanation && (
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed font-medium">
-                  <span className="text-emerald-400 font-bold">Audit Findings:</span> {scanResult.explanation}
+                <div className="p-3 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-50 border border-slate-800 dark:border-slate-800 light:border-slate-200 text-xs text-slate-300 dark:text-slate-300 light:text-slate-700 leading-relaxed font-medium">
+                  <span className="text-emerald-500 font-bold">Audit Findings:</span> {scanResult.explanation}
                 </div>
               )}
 
               {/* Raw JSON Block */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Raw Telemetry JSON Response</label>
-                <div className="p-3.5 rounded-xl bg-slate-950 text-emerald-400 font-mono text-[11px] border border-slate-800 overflow-x-auto max-h-40">
+                <div className="p-3.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-900 text-emerald-400 font-mono text-[11px] border border-slate-800 dark:border-slate-800 light:border-slate-300 overflow-x-auto max-h-40">
                   <pre>{JSON.stringify(scanResult, null, 2)}</pre>
                 </div>
               </div>
             </div>
           ) : (
             /* Clean Empty State */
-            <div className="my-auto text-center space-y-3 p-8 border border-dashed border-slate-800 rounded-xl">
+            <div className="my-auto text-center space-y-3 p-8 border border-dashed border-slate-800 dark:border-slate-800 light:border-slate-300 rounded-xl">
               <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
                 <Globe className="w-6 h-6" strokeWidth={1.5} />
               </div>
-              <h4 className="text-sm font-bold text-slate-100">Ready for URL Security Evaluation</h4>
-              <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
-                Paste any website link on the left, then click <strong className="text-emerald-400">Execute URL Threat Scan</strong> to inspect phishing and typosquatting risks.
+              <h4 className="text-sm font-bold text-slate-100 dark:text-slate-100 light:text-slate-900">Ready for URL Security Evaluation</h4>
+              <p className="text-xs text-slate-400 dark:text-slate-400 light:text-slate-600 max-w-xs mx-auto leading-relaxed">
+                Paste any website link on the left, then click <strong className="text-emerald-500">Execute URL Threat Scan</strong> to inspect phishing and typosquatting risks.
               </p>
             </div>
           )}
