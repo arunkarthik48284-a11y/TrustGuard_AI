@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { 
-  ShieldAlert, 
+  ShieldCheck, 
   ScanLine, 
   Lock, 
   Sparkles, 
   Copy, 
   Check, 
-  HelpCircle,
-  XCircle,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  Terminal,
+  Code2,
+  XCircle,
+  ToggleLeft,
+  ToggleRight
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { securityAPI } from '../services/api';
@@ -26,7 +29,6 @@ const ScanPlayground = () => {
   });
 
   const [scanning, setScanning] = useState(false);
-  const [scanStep, setScanStep] = useState('');
   const [progress, setProgress] = useState(0);
   const [scanResult, setScanResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -55,8 +57,7 @@ const ScanPlayground = () => {
 
     setErrorMsg('');
     setScanning(true);
-    setProgress(25);
-    setScanStep('Executing PII Redaction & Gemini Threat Scanner...');
+    setProgress(30);
 
     try {
       const scanFn = securityAPI.scanPayload || securityAPI.scan;
@@ -87,11 +88,15 @@ const ScanPlayground = () => {
     }
   };
 
-  const copyToClipboard = (text) => {
-    if (!text) return;
-    navigator.clipboard.writeText(text);
+  const copyJSON = () => {
+    if (!scanResult) return;
+    navigator.clipboard.writeText(JSON.stringify(scanResult, null, 2));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const toggleOption = (key) => {
+    setOptions(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const formatPiiItem = (item) => {
@@ -108,10 +113,10 @@ const ScanPlayground = () => {
 
   return (
     <div className="space-y-6">
-      {/* Sample Payload Shortcuts */}
-      <div className="glass-panel p-4 rounded-2xl border border-gray-800 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-gray-300 font-medium">
-          <Sparkles className="w-4 h-4 text-cyan-400" />
+      {/* Sample Payload Shortcuts Bar */}
+      <div className="bg-slate-900/70 backdrop-blur-md p-4 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs text-slate-300 font-semibold">
+          <Sparkles className="w-4 h-4 text-emerald-400" strokeWidth={1.5} />
           <span>Quick Sample Scenarios:</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -123,7 +128,7 @@ const ScanPlayground = () => {
                 setScanResult(null);
                 setErrorMsg('');
               }}
-              className="px-3 py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 text-xs text-gray-300 border border-gray-700/60 transition-all"
+              className="px-3 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-xs text-slate-300 border border-slate-800 transition-all font-medium"
             >
               {sample.label}
             </button>
@@ -131,28 +136,28 @@ const ScanPlayground = () => {
         </div>
       </div>
 
-      {/* Error Banner Alert */}
+      {/* Error Alert Banner */}
       {errorMsg && (
-        <div className="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/50 flex items-center justify-between text-rose-300 text-xs font-medium animate-fadeIn">
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between text-rose-300 text-xs font-semibold">
           <div className="flex items-center gap-2">
-            <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
+            <XCircle className="w-5 h-5 text-rose-400 shrink-0" strokeWidth={1.5} />
             <span>{errorMsg}</span>
           </div>
-          <button onClick={() => setErrorMsg('')} className="text-rose-400 hover:text-rose-200 text-xs underline">
+          <button onClick={() => setErrorMsg('')} className="text-rose-400 hover:text-rose-200 underline text-xs">
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Main Terminal Grid (2 Columns) */}
+      {/* 50/50 Split Screen Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column: Input Payload Editor */}
-        <div className="glass-panel p-6 rounded-3xl border border-gray-800 space-y-5 flex flex-col justify-between">
+        {/* Left Side: Input Payload & Styled Control Panel */}
+        <div className="bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-5">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ScanLine className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Input Payload Terminal</h3>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2 text-slate-100 font-bold text-sm">
+                <Terminal className="w-4 h-4 text-emerald-400" strokeWidth={1.5} />
+                <span>Input Payload</span>
               </div>
               <button
                 onClick={() => {
@@ -160,184 +165,164 @@ const ScanPlayground = () => {
                   setScanResult(null);
                   setErrorMsg('');
                 }}
-                className="text-xs text-gray-400 hover:text-gray-200 flex items-center gap-1"
+                className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 font-medium"
               >
-                <RotateCcw className="w-3.5 h-3.5" /> Clear
+                <RotateCcw className="w-3.5 h-3.5" strokeWidth={1.5} /> Reset
               </button>
             </div>
 
-            <div className="relative">
-              <textarea
-                value={inputText}
-                onChange={(e) => {
-                  setInputText(e.target.value);
-                  setErrorMsg('');
-                }}
-                placeholder="Paste prompt, email, user query, or API text payload here..."
-                rows={7}
-                className="w-full bg-[#0B0F19] text-gray-200 font-mono text-xs p-4 rounded-2xl border border-gray-800 focus:outline-none focus:border-cyan-500/50 resize-none leading-relaxed"
-              />
-            </div>
+            {/* Dark Monospaced Textarea */}
+            <textarea
+              value={inputText}
+              onChange={(e) => {
+                setInputText(e.target.value);
+                setErrorMsg('');
+              }}
+              placeholder="Paste raw prompt, API body, or user message here..."
+              rows={8}
+              className="w-full bg-slate-950 text-slate-200 font-mono text-xs p-4 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500/40 resize-none leading-relaxed"
+            />
 
-            {/* Strictness Level Selector */}
-            <div className="space-y-2">
+            {/* Control Panel: Strictness & Styled Toggle Switches */}
+            <div className="space-y-4 pt-2 border-t border-slate-800">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-gray-300 flex items-center gap-1">
-                  Strictness Level
-                  <HelpCircle className="w-3.5 h-3.5 text-gray-500" title="Paranoid level blocks all sensitive context." />
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Strictness Mode
                 </label>
-                <span className="text-xs text-cyan-400 font-bold uppercase">{strictness}</span>
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                {['low', 'medium', 'high', 'paranoid'].map((lvl) => (
-                  <button
-                    key={lvl}
-                    type="button"
-                    onClick={() => setStrictness(lvl)}
-                    className={`py-2 rounded-xl text-xs font-bold uppercase transition-all ${
-                      strictness === lvl
-                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-md shadow-cyan-500/10'
-                        : 'bg-gray-900 text-gray-400 border border-gray-800 hover:bg-gray-800'
-                    }`}
-                  >
-                    {lvl}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Guardrail Controls */}
-            <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {[
-                { key: 'maskPII', label: 'Mask PII' },
-                { key: 'blockInjection', label: 'Prompt Injection' },
-                { key: 'blockToxicity', label: 'AI Toxicity' }
-              ].map((ctrl) => (
-                <label
-                  key={ctrl.key}
-                  className="flex items-center gap-2 p-2.5 rounded-xl bg-gray-900/60 border border-gray-800 text-xs text-gray-300 cursor-pointer hover:border-gray-700"
+                <select
+                  value={strictness}
+                  onChange={(e) => setStrictness(e.target.value)}
+                  className="bg-slate-950 text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500/40 uppercase"
                 >
-                  <input
-                    type="checkbox"
-                    checked={options[ctrl.key]}
-                    onChange={(e) => setOptions({ ...options, [ctrl.key]: e.target.checked })}
-                    className="rounded accent-cyan-500"
-                  />
-                  <span>{ctrl.label}</span>
-                </label>
-              ))}
+                  <option value="low">Low Security</option>
+                  <option value="medium">Medium Security</option>
+                  <option value="high">High Security</option>
+                  <option value="paranoid">Paranoid Mode</option>
+                </select>
+              </div>
+
+              {/* Styled Switch Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { key: 'maskPII', label: 'Mask PII' },
+                  { key: 'blockInjection', label: 'Prompt Injection' },
+                  { key: 'blockToxicity', label: 'Toxicity Filter' }
+                ].map((ctrl) => {
+                  const active = options[ctrl.key];
+                  return (
+                    <div
+                      key={ctrl.key}
+                      onClick={() => toggleOption(ctrl.key)}
+                      className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between text-xs font-semibold ${
+                        active
+                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                          : 'bg-slate-950 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span>{ctrl.label}</span>
+                      {active ? (
+                        <ToggleRight className="w-5 h-5 text-emerald-400" strokeWidth={1.5} />
+                      ) : (
+                        <ToggleLeft className="w-5 h-5 text-slate-600" strokeWidth={1.5} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           <button
             onClick={handleScan}
             disabled={scanning || !inputText.trim()}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
           >
             {scanning ? (
               <span className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-slate-950/40 border-t-slate-950 rounded-full animate-spin"></div>
                 Analyzing Security Payload...
               </span>
             ) : (
               <>
-                <ScanLine className="w-4 h-4" /> Execute Guardrail Scan
+                <ScanLine className="w-4 h-4" strokeWidth={1.5} /> Execute Guardrail Scan
               </>
             )}
           </button>
         </div>
 
-        {/* Right Column: Processed Result / Loading Indicator / Empty State */}
-        <div className="glass-panel p-6 rounded-3xl border border-gray-800 flex flex-col justify-between min-h-[420px]">
+        {/* Right Side: Formatted Analysis Result Output (50/50 Split) */}
+        <div className="bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col justify-between min-h-[440px]">
           {scanning ? (
             <div className="my-auto text-center space-y-4 p-8">
-              <div className="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center mx-auto animate-pulse">
-                <Sparkles className="w-8 h-8 text-cyan-400 animate-spin" />
+              <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto">
+                <Sparkles className="w-7 h-7 text-emerald-400 animate-spin" strokeWidth={1.5} />
               </div>
-              <div className="space-y-2">
-                <h4 className="text-sm font-bold text-white">{scanStep}</h4>
-                <div className="w-full max-w-xs mx-auto h-2 bg-gray-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-300" style={{ width: `${progress}%` }}></div>
-                </div>
+              <h4 className="text-sm font-bold text-slate-100">Intercepting Payload with Gemini AI...</h4>
+              <div className="w-48 mx-auto h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                <div className="h-full bg-emerald-400 transition-all duration-300" style={{ width: `${progress}%` }}></div>
               </div>
             </div>
           ) : scanResult ? (
-            <div className="space-y-5 animate-fadeIn">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+            <div className="space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <Code2 className="w-4 h-4 text-emerald-400" strokeWidth={1.5} />
+                  <span className="text-slate-100 font-bold text-sm">Analysis Result</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <StatusBadge level={scanResult.risk_level || 'low'} isBlocked={Boolean(scanResult.is_blocked)} />
-                  <span className="text-xs font-mono text-gray-400">Risk Score: <strong className="text-cyan-400">{scanResult.risk_score || 0}/100</strong></span>
+                  <button
+                    onClick={copyJSON}
+                    className="px-3 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-xs text-slate-300 border border-slate-800 flex items-center gap-1.5 font-semibold"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.5} /> : <Copy className="w-3.5 h-3.5" strokeWidth={1.5} />}
+                    {copied ? 'Copied' : 'Copy JSON'}
+                  </button>
                 </div>
-                <button
-                  onClick={() => copyToClipboard(scanResult.masked_text || inputText)}
-                  className="px-3 py-1.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-xs text-gray-300 border border-gray-700 flex items-center gap-1.5"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copied ? 'Copied' : 'Copy Output'}
-                </button>
               </div>
 
-              {/* Redacted Payload View */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Processed Redacted Payload</label>
-                <div className="p-4 rounded-2xl bg-[#0B0F19] text-gray-200 font-mono text-xs border border-gray-800 leading-relaxed whitespace-pre-wrap">
+              {/* Formatted Redacted Text & Badges */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Redacted Text Output</label>
+                <div className="p-3.5 rounded-xl bg-slate-950 text-slate-200 font-mono text-xs border border-slate-800 whitespace-pre-wrap leading-relaxed">
                   {scanResult.masked_text || inputText}
                 </div>
               </div>
 
               {/* Detected PII Badges */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Redacted Identifiers ({piiList.length})</label>
-                {piiList.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
+              {piiList.length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PII Tokens ({piiList.length})</label>
+                  <div className="flex flex-wrap gap-1.5">
                     {piiList.map((rawPii, i) => {
                       const pii = formatPiiItem(rawPii);
                       return (
-                        <span key={i} className="px-2.5 py-1 rounded-lg bg-violet-950/80 text-violet-300 border border-violet-500/40 text-[11px] font-mono flex items-center gap-1">
-                          <Lock className="w-3 h-3 text-violet-400" /> {pii.type}: {pii.value}
+                        <span key={i} className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[11px] font-mono flex items-center gap-1">
+                          <Lock className="w-3 h-3 text-amber-400" strokeWidth={1.5} /> {pii.type}: {pii.value}
                         </span>
                       );
                     })}
                   </div>
-                ) : (
-                  <p className="text-xs text-gray-500 italic">No PII tokens detected in payload.</p>
-                )}
-              </div>
-
-              {/* Security Threats & Explanation */}
-              {threatList.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-gray-800">
-                  <label className="text-[11px] font-semibold text-rose-400 uppercase tracking-wider block">Security Threats Intercepted ({threatList.length})</label>
-                  <div className="space-y-1.5">
-                    {threatList.map((t, idx) => (
-                      <div key={idx} className="text-xs text-rose-300 flex items-start gap-2 bg-rose-950/40 p-2.5 rounded-xl border border-rose-500/20">
-                        <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-bold">{t.category || 'Threat'}: </span>
-                          <span>{t.description}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
 
-              <div className="space-y-2 pt-2 border-t border-gray-800">
-                <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Security Explanation</label>
-                <p className="text-xs text-gray-300 leading-relaxed bg-gray-900/60 p-3 rounded-xl border border-gray-800">
-                  {scanResult.explanation || 'Evaluated via TrustGuard security firewall.'}
-                </p>
+              {/* Formatted JSON Output Code Block */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Raw Telemetry JSON Response</label>
+                <div className="p-3.5 rounded-xl bg-slate-950 text-emerald-400 font-mono text-[11px] border border-slate-800 overflow-x-auto max-h-48">
+                  <pre>{JSON.stringify(scanResult, null, 2)}</pre>
+                </div>
               </div>
             </div>
           ) : (
-            /* Professional Empty State */
-            <div className="my-auto text-center space-y-3 p-8 border border-dashed border-gray-800 rounded-2xl">
-              <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center mx-auto text-cyan-400">
-                <ShieldAlert className="w-7 h-7" />
+            /* Clean Empty State */
+            <div className="my-auto text-center space-y-3 p-8 border border-dashed border-slate-800 rounded-xl">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+                <ShieldCheck className="w-6 h-6" strokeWidth={1.5} />
               </div>
-              <h4 className="text-sm font-bold text-white">Ready for Guardrail Evaluation</h4>
-              <p className="text-xs text-gray-400 max-w-sm mx-auto leading-relaxed">
-                Enter prompt text on the left pane or pick a sample scenario, then click <strong className="text-cyan-400">Execute Guardrail Scan</strong> to evaluate PII masking and prompt injection threat scores.
+              <h4 className="text-sm font-bold text-slate-100">Ready for Guardrail Evaluation</h4>
+              <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                Enter payload on the left terminal, then click <strong className="text-emerald-400">Execute Guardrail Scan</strong> to analyze PII tokens and prompt injection threats.
               </p>
             </div>
           )}

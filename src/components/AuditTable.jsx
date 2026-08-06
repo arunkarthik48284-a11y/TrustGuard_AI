@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  Search, 
-  Download, 
-  ChevronLeft, 
-  ChevronRight, 
-  Eye, 
+import {
+  Search,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
   FileSpreadsheet,
   X
 } from 'lucide-react';
@@ -88,11 +88,10 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
           <button
             key={lvl}
             onClick={() => handleFilterClick(lvl)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
-              filterLevel === lvl
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${filterLevel === lvl
                 ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
                 : 'bg-gray-900/60 text-gray-400 hover:bg-gray-800 border border-gray-800'
-            }`}
+              }`}
           >
             {lvl}
           </button>
@@ -137,9 +136,8 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
                       {log.original_input}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-white">
-                      <span className={`px-2 py-0.5 rounded text-xs ${
-                        (log.risk_score || 0) >= 70 ? 'bg-rose-950 text-rose-400' : 'bg-gray-800 text-cyan-400'
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded text-xs ${(log.risk_score || 0) >= 70 ? 'bg-rose-950 text-rose-400' : 'bg-gray-800 text-cyan-400'
+                        }`}>
                         {log.risk_score || 0} / 100
                       </span>
                     </td>

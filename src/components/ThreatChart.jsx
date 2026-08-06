@@ -1,15 +1,29 @@
 import React from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+import { 
+  ResponsiveContainer, 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  BarChart, 
+  Bar, 
+  Cell 
+} from 'recharts';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#0F172A] border border-gray-700 p-3 rounded-xl shadow-xl text-xs">
-        <p className="font-bold text-gray-200 mb-1">Time Window: {label}</p>
+      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl shadow-xl text-xs space-y-1">
+        <p className="font-semibold text-slate-300 border-b border-slate-800 pb-1">{label}</p>
         {payload.map((entry, index) => (
-          <p key={`item-${index}`} style={{ color: entry.color }} className="font-semibold">
-            {entry.name}: {entry.value}
-          </p>
+          <div key={index} className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5 text-slate-400">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
+              {entry.name}:
+            </span>
+            <span className="font-bold text-slate-100">{entry.value}</span>
+          </div>
         ))}
       </div>
     );
@@ -19,15 +33,19 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const ThreatChart = ({ data = [], type = 'area' }) => {
   if (type === 'bar') {
+    const COLORS = ['#10b981', '#f59e0b', '#f43f5e', '#6366f1', '#06b6d4'];
     return (
-      <div className="w-full h-72">
+      <div className="w-full h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
-            <XAxis dataKey="category" stroke="#6B7280" fontSize={11} />
-            <YAxis stroke="#6B7280" fontSize={11} />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="count" fill="#06B6D4" radius={[6, 6, 0, 0]} name="Incidents Flagged" />
+          <BarChart data={data} layout="vertical" margin={{ top: 10, right: 20, left: 20, bottom: 0 }}>
+            <XAxis type="number" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+            <YAxis type="category" dataKey="category" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} width={120} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(30, 41, 59, 0.4)' }} />
+            <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={18}>
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -39,21 +57,20 @@ const ThreatChart = ({ data = [], type = 'area' }) => {
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <defs>
-            <linearGradient id="scansGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#06B6D4" stopOpacity={0} />
+            <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
             </linearGradient>
-            <linearGradient id="threatsGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#F43F5E" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#F43F5E" stopOpacity={0} />
+            <linearGradient id="colorThreats" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" vertical={false} />
-          <XAxis dataKey="timestamp" stroke="#6B7280" fontSize={11} />
-          <YAxis stroke="#6B7280" fontSize={11} />
+          <XAxis dataKey="timestamp" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+          <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
           <Tooltip content={<CustomTooltip />} />
-          <Area type="monotone" dataKey="scans" stroke="#06B6D4" strokeWidth={2} fillOpacity={1} fill="url(#scansGradient)" name="Total Scans" />
-          <Area type="monotone" dataKey="threats" stroke="#F43F5E" strokeWidth={2} fillOpacity={1} fill="url(#threatsGradient)" name="Threats Intercepted" />
+          <Area type="monotone" dataKey="scans" name="Total Scans" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorScans)" />
+          <Area type="monotone" dataKey="blocked" name="Blocked Threats" stroke="#f43f5e" strokeWidth={2} fillOpacity={1} fill="url(#colorThreats)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>

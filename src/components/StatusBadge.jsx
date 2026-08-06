@@ -1,46 +1,49 @@
 import React from 'react';
-import { AlertTriangle, CheckCircle2, ShieldX, Info } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, AlertTriangle, Lock } from 'lucide-react';
 
 const StatusBadge = ({ level = 'low', isBlocked = false }) => {
-  const normalizedLevel = String(level).toLowerCase();
-
   if (isBlocked) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950/80 text-rose-400 border border-rose-500/40">
-        <ShieldX className="w-3.5 h-3.5" />
-        BLOCKED
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+        <ShieldAlert className="w-3.5 h-3.5" strokeWidth={1.5} />
+        <span>BLOCKED</span>
       </span>
     );
   }
 
-  const styles = {
-    critical: {
-      bg: 'bg-rose-950/70 text-rose-400 border-rose-500/40',
-      icon: AlertTriangle
-    },
-    high: {
-      bg: 'bg-amber-950/70 text-amber-400 border-amber-500/40',
-      icon: AlertTriangle
-    },
-    medium: {
-      bg: 'bg-yellow-950/60 text-yellow-300 border-yellow-500/30',
-      icon: Info
-    },
-    low: {
-      bg: 'bg-emerald-950/60 text-emerald-400 border-emerald-500/30',
-      icon: CheckCircle2
-    }
-  };
+  const normalizedLevel = String(level).toLowerCase();
 
-  const current = styles[normalizedLevel] || styles.low;
-  const Icon = current.icon;
-
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${current.bg}`}>
-      <Icon className="w-3.5 h-3.5" />
-      {normalizedLevel.toUpperCase()}
-    </span>
-  );
+  switch (normalizedLevel) {
+    case 'critical':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+          <ShieldAlert className="w-3.5 h-3.5" strokeWidth={1.5} />
+          <span>CRITICAL RISK</span>
+        </span>
+      );
+    case 'high':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+          <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} />
+          <span>HIGH RISK</span>
+        </span>
+      );
+    case 'medium':
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+          <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.5} />
+          <span>MEDIUM RISK</span>
+        </span>
+      );
+    case 'low':
+    default:
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          <ShieldCheck className="w-3.5 h-3.5" strokeWidth={1.5} />
+          <span>SAFE / PASSED</span>
+        </span>
+      );
+  }
 };
 
 export default StatusBadge;

@@ -5,60 +5,39 @@ import { securityAPI } from '../services/api';
 
 const AuditLogs = () => {
   const [logs, setLogs] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ search: '', riskLevel: 'all' });
+  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
 
-  const fetchLogs = async (page = 1, filterOptions = filters) => {
+  const fetchLogs = async (params = {}) => {
     setLoading(true);
     try {
-      const res = await securityAPI.getLogs({
-        page,
-        limit: 10,
-        risk_level: filterOptions.riskLevel,
-        search: filterOptions.search
-      });
-      setLogs(res.data.logs || []);
-      if (res.data.pagination) {
-        setPagination(res.data.pagination);
-      }
+      const res = await securityAPI.getLogs(params);
+      const data = res.data?.logs || res.data?.data?.logs || res.data;
+      const meta = res.data?.pagination || res.data?.data?.pagination || { page: 1, totalPages: 1, total: Array.isArray(data) ? data.length : 0 };
+
+      setLogs(Array.isArray(data) ? data : []);
+      setPagination(meta);
     } catch (err) {
-      console.warn('Failed to fetch audit logs:', err);
+      console.warn('Audit log fetch notice:', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLogs(1, filters);
+    fetchLogs();
   }, []);
 
-  const handlePageChange = (newPage) => {
-    fetchLogs(newPage, filters);
-  };
-
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-    fetchLogs(1, newFilters);
-  };
-
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-gray-100 pb-12">
-      <Navbar title="Audit Logs & Compliance Hub" />
+    <div className="min-h-screen bg-slate-950 text-slate-100 pb-12">
+      <Navbar title="Audit Logs & Compliance Trail" />
       <main className="p-6 max-w-7xl mx-auto space-y-6">
-        <div>
-          <h2 className="text-xl font-extrabold text-white">Cryptographic Security Audit Trail</h2>
-          <p className="text-xs text-gray-400 mt-1">
-            Chronological log of all evaluated AI prompts, redacted PII tokens, flagged injection attempts, and exportable reports.
-          </p>
-        </div>
-
         <AuditTable
           logs={logs}
           loading={loading}
           pagination={pagination}
-          onPageChange={handlePageChange}
-          onFilterChange={handleFilterChange}
+          onPageChange={(page) => fetchLogs({ page })}
+          onFilterChange={(filters) => fetchLogs(filters)}
         />
       </main>
     </div>
