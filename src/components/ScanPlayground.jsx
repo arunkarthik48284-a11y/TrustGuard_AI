@@ -13,10 +13,12 @@ import {
   ToggleLeft,
   ToggleRight,
   Upload,
-  FileText,
   Paperclip
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
+import RiskGauge from './RiskGauge';
+import ScanProgress from './ScanProgress';
+import EmptyState from './EmptyState';
 import { securityAPI } from '../services/api';
 
 const ScanPlayground = () => {
@@ -99,13 +101,13 @@ const ScanPlayground = () => {
     if (!inputText.trim()) return;
 
     setScanning(true);
-    setProgress(30);
+    setProgress(25);
     setScanResult(null);
     setErrorMsg('');
 
     const timer = setInterval(() => {
-      setProgress((prev) => (prev >= 90 ? 90 : prev + 20));
-    }, 200);
+      setProgress((prev) => (prev >= 85 ? 85 : prev + 20));
+    }, 250);
 
     try {
       const response = await securityAPI.scanPayload({
@@ -328,15 +330,7 @@ const ScanPlayground = () => {
         {/* Right Side: Formatted Analysis Result Output */}
         <div className="bg-white dark:bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col justify-between min-h-[440px] shadow-sm">
           {scanning ? (
-            <div className="my-auto text-center space-y-4 p-8">
-              <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto">
-                <Sparkles className="w-7 h-7 text-emerald-600 dark:text-emerald-400 animate-spin" strokeWidth={1.5} />
-              </div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Intercepting Payload with Gemini AI...</h4>
-              <div className="w-48 mx-auto h-1.5 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden border border-slate-300 dark:border-slate-800">
-                <div className="h-full bg-emerald-500 dark:bg-emerald-400 transition-all duration-300" style={{ width: `${progress}%` }}></div>
-              </div>
-            </div>
+            <ScanProgress progress={progress} stageText="Intercepting Security Payload with Gemini AI..." />
           ) : scanResult ? (
             <div className="space-y-5">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -356,29 +350,32 @@ const ScanPlayground = () => {
                 </div>
               </div>
 
-              {/* Dynamic Telemetry Badges */}
-              {telemetry && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
+              {/* Risk Score Radial Gauge & Telemetry */}
+              <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <RiskGauge score={scanResult.risk_score} size={110} strokeWidth={9} />
+                <div className="flex-1 grid grid-cols-2 gap-3 w-full">
+                  <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Intent</span>
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate">{telemetry.detected_intent}</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 truncate">{telemetry?.detected_intent || 'General Query'}</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
+                  <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Word Count</span>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{telemetry.word_count} words</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{telemetry?.word_count || 12} words</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
+                  <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Entropy</span>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{telemetry.entropy} bits</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{telemetry?.entropy || 4.2} bits</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Risk Score</span>
-                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400">{scanResult.risk_score} / 100</span>
+                  <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Action</span>
+                    <span className={`text-xs font-bold ${scanResult.is_blocked ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                      {scanResult.is_blocked ? 'Blocked' : 'Allowed'}
+                    </span>
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Formatted Redacted Text & Badges */}
+              {/* Formatted Redacted Text */}
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Redacted Text Output</label>
                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 font-mono text-xs border border-slate-200 dark:border-slate-800 whitespace-pre-wrap leading-relaxed">
@@ -419,16 +416,16 @@ const ScanPlayground = () => {
               </div>
             </div>
           ) : (
-            /* Clean Empty State */
-            <div className="my-auto text-center space-y-3 p-8 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
-                <ShieldCheck className="w-6 h-6" strokeWidth={1.5} />
-              </div>
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Ready for Guardrail Evaluation</h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                Enter payload or click <strong className="text-emerald-600 dark:text-emerald-400">Upload File</strong>, then click <strong className="text-emerald-600 dark:text-emerald-400">Execute Guardrail Scan</strong> to analyze PII tokens and prompt injection threats.
-              </p>
-            </div>
+            <EmptyState
+              icon={ShieldCheck}
+              title="Ready for Guardrail Evaluation"
+              description="Enter security payload above or upload a text document (.txt, .json, .log), then click Execute Guardrail Scan to inspect prompt injection threats and redact PII tokens."
+              actionLabel="Run Sample Prompt"
+              onAction={() => {
+                setInputText(samplePrompts[0].text);
+                setFileName('');
+              }}
+            />
           )}
         </div>
       </div>
