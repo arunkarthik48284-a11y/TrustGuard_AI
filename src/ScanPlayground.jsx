@@ -7,7 +7,6 @@ import {
   Copy, 
   Check, 
   RotateCcw,
-  AlertTriangle,
   Terminal,
   Code2,
   XCircle,
@@ -109,7 +108,7 @@ const ScanPlayground = () => {
   };
 
   const piiList = Array.isArray(scanResult?.pii_detected) ? scanResult.pii_detected : [];
-  const threatList = Array.isArray(scanResult?.threats_detected) ? scanResult.threats_detected : [];
+  const telemetry = scanResult?.telemetry || null;
 
   return (
     <div className="space-y-6">
@@ -151,7 +150,7 @@ const ScanPlayground = () => {
 
       {/* 50/50 Split Screen Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Side: Input Payload & Styled Control Panel */}
+        {/* Left Side: Input Payload & Control Panel */}
         <div className="bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-5">
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -171,7 +170,7 @@ const ScanPlayground = () => {
               </button>
             </div>
 
-            {/* Dark Monospaced Textarea */}
+            {/* Textarea */}
             <textarea
               value={inputText}
               onChange={(e) => {
@@ -183,7 +182,7 @@ const ScanPlayground = () => {
               className="w-full bg-slate-950 text-slate-200 font-mono text-xs p-4 rounded-xl border border-slate-800 focus:outline-none focus:border-emerald-500/40 resize-none leading-relaxed"
             />
 
-            {/* Control Panel: Strictness & Styled Toggle Switches */}
+            {/* Control Panel: Strictness & Toggles */}
             <div className="space-y-4 pt-2 border-t border-slate-800">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
@@ -250,7 +249,7 @@ const ScanPlayground = () => {
           </button>
         </div>
 
-        {/* Right Side: Formatted Analysis Result Output (50/50 Split) */}
+        {/* Right Side: Formatted Analysis Result Output */}
         <div className="bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-800 flex flex-col justify-between min-h-[440px]">
           {scanning ? (
             <div className="my-auto text-center space-y-4 p-8">
@@ -281,6 +280,28 @@ const ScanPlayground = () => {
                 </div>
               </div>
 
+              {/* Dynamic Telemetry Badges */}
+              {telemetry && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Intent</span>
+                    <span className="text-xs font-bold text-emerald-400 truncate">{telemetry.detected_intent}</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Word Count</span>
+                    <span className="text-xs font-bold text-slate-200">{telemetry.word_count} words</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Entropy</span>
+                    <span className="text-xs font-bold text-slate-200">{telemetry.entropy} bits</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Risk Score</span>
+                    <span className="text-xs font-bold text-amber-400">{scanResult.risk_score} / 100</span>
+                  </div>
+                </div>
+              )}
+
               {/* Formatted Redacted Text & Badges */}
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Redacted Text Output</label>
@@ -306,10 +327,17 @@ const ScanPlayground = () => {
                 </div>
               )}
 
+              {/* Audit Explanation */}
+              {scanResult.explanation && (
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed font-medium">
+                  <span className="text-emerald-400 font-bold">Audit Analysis:</span> {scanResult.explanation}
+                </div>
+              )}
+
               {/* Formatted JSON Output Code Block */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Raw Telemetry JSON Response</label>
-                <div className="p-3.5 rounded-xl bg-slate-950 text-emerald-400 font-mono text-[11px] border border-slate-800 overflow-x-auto max-h-48">
+                <div className="p-3.5 rounded-xl bg-slate-950 text-emerald-400 font-mono text-[11px] border border-slate-800 overflow-x-auto max-h-40">
                   <pre>{JSON.stringify(scanResult, null, 2)}</pre>
                 </div>
               </div>
