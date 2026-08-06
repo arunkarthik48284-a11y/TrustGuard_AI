@@ -35,13 +35,13 @@ export const AuthProvider = ({ children }) => {
     const res = await authAPI.login(credentials);
     const { token: authToken, user: userData } = res.data;
 
-    setToken(authToken);
-    setUser(userData);
-
     if (typeof window !== 'undefined') {
       localStorage.setItem('trustguard_token', authToken);
       localStorage.setItem('trustguard_user', JSON.stringify(userData));
     }
+
+    setToken(authToken);
+    setUser(userData);
 
     return userData;
   };
@@ -50,13 +50,13 @@ export const AuthProvider = ({ children }) => {
     const res = await authAPI.register(data);
     const { token: authToken, user: userData } = res.data;
 
-    setToken(authToken);
-    setUser(userData);
-
     if (typeof window !== 'undefined') {
       localStorage.setItem('trustguard_token', authToken);
       localStorage.setItem('trustguard_user', JSON.stringify(userData));
     }
+
+    setToken(authToken);
+    setUser(userData);
 
     return userData;
   };
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         token,
-        isAuthenticated: !!token,
+        isAuthenticated: !!token || (typeof window !== 'undefined' && !!localStorage.getItem('trustguard_token')),
         loading,
         login,
         register,
