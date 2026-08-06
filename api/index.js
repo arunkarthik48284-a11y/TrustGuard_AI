@@ -1,8 +1,11 @@
-let app;
+let appModule = null;
+let loadError = null;
+
 try {
-  app = require('../backend/src/app');
+  appModule = require('../backend/src/app');
 } catch (err) {
-  console.error('Failed to load backend app module:', err.message);
+  loadError = err;
+  console.error('Failed to load backend app module:', err);
 }
 
 module.exports = (req, res) => {
@@ -14,15 +17,26 @@ module.exports = (req, res) => {
     return res.status(200).end();
   }
 
-  if (!app) {
+  // Lazy attempt if initial load failed
+  if (!appModule) {
+    try {
+      appModule = require('../backend/src/app');
+      loadError = null;
+    } catch (retryErr) {
+      loadError = retryErr;
+    }
+  }
+
+  if (!appModule) {
     return res.status(500).json({
       error: 'Backend Initialization Exception',
-      message: 'TrustGuard backend engine loading failed.'
+      message: loadError ? loadError.message : 'TrustGuard backend engine loading failed.',
+      stack: process.env.NODE_ENV === 'development' ? (loadError ? loadError.stack : null) : undefined
     });
   }
 
   try {
-    return app(req, res);
+    return appModule(req, res);
   } catch (err) {
     console.error('Serverless Execution Exception:', err);
     return res.status(500).json({

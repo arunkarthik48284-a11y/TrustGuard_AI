@@ -228,7 +228,8 @@ function runDynamicAnalysis(inputText, piiList, opts) {
     threats.push({ category: 'Database Security', description: 'Detected executable SQL injection syntax' });
   } else if (/<\s*script/i.test(text) || /javascript:/i.test(text) || /onerror\s*=/i.test(text)) {
     riskScore = Math.max(riskScore, 70);
-    detectedIntent = 'Web App Security', description: 'Detected executable script tags' });
+    detectedIntent = 'Web App Security';
+    threats.push({ category: 'Web App Security', description: 'Detected executable script tags' });
   } else if (/\b(npm|git|sudo|bash|chmod|curl|wget|python|const|import|function)\b/i.test(text)) {
     riskScore = Math.max(riskScore, 28 + (baseVariation % 8));
     detectedIntent = 'Source Code / CLI Command';
