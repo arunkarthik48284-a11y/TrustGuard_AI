@@ -26,21 +26,21 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health Check Endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'healthy',
     system: 'TrustGuard AI Security Engine',
     version: '1.0.0',
-    platform: 'Vercel Serverless Ready',
+    platform: 'Vercel Serverless Active',
     timestamp: new Date().toISOString()
   });
 });
 
-// API Routes Mounting
-app.use('/api/auth', authRoutes);
-app.use('/api/security', scanRoutes);
-app.use('/api/security', auditRoutes);
-app.use('/api/policies', policyRoutes);
+// API Routes Mounting (Dual Prefix for Vercel Serverless & Express Dev Server)
+app.use(['/api/auth', '/auth'], authRoutes);
+app.use(['/api/security', '/security'], scanRoutes);
+app.use(['/api/security', '/security'], auditRoutes);
+app.use(['/api/policies', '/policies'], policyRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
