@@ -1,18 +1,17 @@
 import axios from 'axios';
 
-// Determine API Base URL safely across development & production environments
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? '/api' : 'http://localhost:5005/api');
+// Standardized API Base URL configuration for Vercel & Local Development
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000, // 15-second API request timeout guardrail
+  timeout: 15000, // 15-second request timeout
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request Interceptor: Attach JWT Token securely if present in localStorage
+// Request Interceptor: Attach JWT Token
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
@@ -26,39 +25,41 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Format error responses and handle expired tokens gracefully
+// Response Interceptor: User-Friendly Error Formatting
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    let errorMessage = 'An unexpected security service error occurred.';
-
-    if (error.code === 'ECONNABORTED') {
-      errorMessage = 'Security request timed out (15s). Please retry.';
-    } else if (error.response) {
-      if (error.response.status === 401) {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('trustguard_token');
-          localStorage.removeItem('trustguard_user');
-        }
-        errorMessage = 'Session expired. Please sign in again.';
-      } else {
-        errorMessage = error.response.data?.error || error.response.data?.message || `Server error (${error.response.status})`;
+    let message = 'An unexpected security engine error occurred.';
+    if (error.response) {
+      const errData = error.response.data?.error || error.response.data?.message || error.response.data;
+      if (typeof errData === 'string') {
+        message = errData;
+      } else if (errData && typeof errData === 'object') {
+        message = errData.message || errData.error || JSON.stringify(errData);
+      } else if (error.response.status === 401) {
+        message = 'Session expired. Please sign in again.';
+      } else if (error.response.status === 403) {
+        message = 'Unauthorized security action.';
+      } else if (error.response.status === 404) {
+        message = 'Requested security endpoint not found.';
+      } else if (error.response.status >= 500) {
+        message = 'Server security engine temporarily unavailable. Using local rules.';
       }
-    } else if (error.request) {
-      errorMessage = 'Unable to reach TrustGuard Security Engine. Please check your network.';
+    } else if (error.code === 'ECONNABORTED') {
+      message = 'Security request timed out after 15 seconds.';
+    } else if (error.message) {
+      message = typeof error.message === 'string' ? error.message : String(error.message);
     }
 
-    // Attach user-friendly error string to response object
-    error.userMessage = errorMessage;
+    error.userMessage = String(message);
     return Promise.reject(error);
   }
 );
 
-// High-level API Service Exports
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (data) => api.post('/auth/register', data),
-  getProfile: () => api.get('/auth/me'),
+  getProfile: () => api.get('/auth/profile'),
 };
 
 export const securityAPI = {
@@ -69,7 +70,7 @@ export const securityAPI = {
 
 export const policyAPI = {
   getPolicies: () => api.get('/policies'),
-  updatePolicy: (id, policyData) => api.put(`/policies/${id}`, policyData),
+  updatePolicy: (policyData) => api.put('/policies', policyData),
 };
 
 export default api;
