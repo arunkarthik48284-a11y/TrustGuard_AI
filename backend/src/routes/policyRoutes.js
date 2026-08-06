@@ -5,5 +5,6 @@ const { authenticateToken, requireRole } = require('../middleware/authMiddleware
 
 router.get('/', policyController.getPolicies);
 router.put('/:id', authenticateToken, requireRole(['admin', 'analyst']), policyController.updatePolicy);
+router.put('/', authenticateToken, requireRole(['admin', 'analyst']), policyController.updatePolicy);
 
 module.exports = router;

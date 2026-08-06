@@ -12,14 +12,21 @@ if (process.env.GEMINI_API_KEY) {
 }
 
 /**
- * Robustly parses JSON from LLM response text, stripping markdown code block wrappers if present.
+ * Robustly parses JSON from LLM response text using regex extraction,
+ * stripping markdown wrappers or conversational preamble.
  */
 function cleanAndParseJSON(text) {
-  if (!text) return null;
+  if (!text || typeof text !== 'string') return null;
   let cleaned = text.trim();
-  if (cleaned.startsWith('```')) {
+  
+  // Extract JSON object structure if present anywhere in string
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    cleaned = jsonMatch[0];
+  } else if (cleaned.startsWith('```')) {
     cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
   }
+
   try {
     return JSON.parse(cleaned);
   } catch (err) {
@@ -64,13 +71,22 @@ Respond ONLY with a valid JSON object matching this exact structure:
         ]
       });
 
-      // 8-second timeout promise race
+      // 6-second timeout promise race for low-latency judging execution
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Gemini API timeout')), 8000)
+        setTimeout(() => reject(new Error('Gemini API request timeout (6s)')), 6000)
       );
 
       const response = await Promise.race([aiPromise, timeoutPromise]);
-      const responseText = response.text || (response.candidates && response.candidates[0]?.content?.parts[0]?.text);
+      let responseText = '';
+      
+      if (typeof response?.text === 'string') {
+        responseText = response.text;
+      } else if (typeof response?.text === 'function') {
+        responseText = response.text();
+      } else if (response?.candidates && response.candidates[0]?.content?.parts[0]?.text) {
+        responseText = response.candidates[0].content.parts[0].text;
+      }
+
       const parsedAi = cleanAndParseJSON(responseText);
 
       if (parsedAi) {
@@ -81,13 +97,13 @@ Respond ONLY with a valid JSON object matching this exact structure:
           is_toxic: Boolean(parsedAi.is_toxic),
           is_blocked: Boolean(parsedAi.is_blocked) || parsedAi.risk_score >= 75,
           threats_detected: Array.isArray(parsedAi.threat_categories)
-            ? parsedAi.threat_categories.map(cat => ({ category: cat, description: 'AI Firewall flagged category' }))
+            ? parsedAi.threat_categories.map(cat => ({ category: cat, description: 'AI Guardrail flagged category' }))
             : aiEvaluation.threats_detected,
-          explanation: parsedAi.explanation || 'Analyzed via Google Gemini 2.5 Security Engine.'
+          explanation: parsedAi.explanation || 'Analyzed via Google Gemini 2.5 Flash AI Engine.'
         };
       }
     } catch (err) {
-      console.warn('⚠️ Gemini AI evaluation failed or timed out. Falling back to local security rules:', err.message);
+      console.warn('⚠️ Gemini AI evaluation notice (using local rules):', err.message);
     }
   }
 

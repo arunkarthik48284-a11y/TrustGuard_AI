@@ -8,7 +8,8 @@ import {
   Check, 
   HelpCircle,
   XCircle,
-  RotateCcw
+  RotateCcw,
+  AlertTriangle
 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { securityAPI } from '../services/api';
@@ -55,10 +56,11 @@ const ScanPlayground = () => {
     setErrorMsg('');
     setScanning(true);
     setProgress(25);
-    setScanStep('1/3 Redacting Sensitive PII Tokens...');
+    setScanStep('Executing PII Redaction & Gemini Threat Scanner...');
 
     try {
-      const response = await securityAPI.scanPayload({
+      const scanFn = securityAPI.scanPayload || securityAPI.scan;
+      const response = await scanFn({
         input_text: inputText,
         strictness_level: strictness,
         mask_pii: options.maskPII,
@@ -66,7 +68,7 @@ const ScanPlayground = () => {
         check_toxicity: options.blockToxicity
       });
 
-      const evaluation = response?.data?.evaluation || {
+      const evaluation = response?.data?.evaluation || response?.data?.data?.evaluation || response?.data?.data || response?.data || {
         masked_text: inputText,
         risk_score: 10,
         risk_level: 'low',
@@ -78,10 +80,10 @@ const ScanPlayground = () => {
 
       setProgress(100);
       setScanResult(evaluation);
-      setScanning(false);
     } catch (err) {
+      setErrorMsg(err.userMessage || err.message || 'Security engine scan encountered an issue.');
+    } finally {
       setScanning(false);
-      setErrorMsg(err.userMessage || err.message || 'Security engine scan failed.');
     }
   };
 
@@ -102,6 +104,7 @@ const ScanPlayground = () => {
   };
 
   const piiList = Array.isArray(scanResult?.pii_detected) ? scanResult.pii_detected : [];
+  const threatList = Array.isArray(scanResult?.threats_detected) ? scanResult.threats_detected : [];
 
   return (
     <div className="space-y-6">
@@ -228,8 +231,8 @@ const ScanPlayground = () => {
 
           <button
             onClick={handleScan}
-            disabled={scanning}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2"
+            disabled={scanning || !inputText.trim()}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-teal-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {scanning ? (
               <span className="flex items-center gap-2">
@@ -302,6 +305,23 @@ const ScanPlayground = () => {
               </div>
 
               {/* Security Threats & Explanation */}
+              {threatList.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-gray-800">
+                  <label className="text-[11px] font-semibold text-rose-400 uppercase tracking-wider block">Security Threats Intercepted ({threatList.length})</label>
+                  <div className="space-y-1.5">
+                    {threatList.map((t, idx) => (
+                      <div key={idx} className="text-xs text-rose-300 flex items-start gap-2 bg-rose-950/40 p-2.5 rounded-xl border border-rose-500/20">
+                        <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-bold">{t.category || 'Threat'}: </span>
+                          <span>{t.description}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2 pt-2 border-t border-gray-800">
                 <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Security Explanation</label>
                 <p className="text-xs text-gray-300 leading-relaxed bg-gray-900/60 p-3 rounded-xl border border-gray-800">

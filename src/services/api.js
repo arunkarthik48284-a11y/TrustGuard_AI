@@ -5,13 +5,13 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000, // 15-second request timeout
+  timeout: 15000, // 15-second request timeout guardrail
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request Interceptor: Attach JWT Token
+// Request Interceptor: Attach Bearer JWT Token securely if present
 api.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
@@ -60,17 +60,27 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (data) => api.post('/auth/register', data),
   getProfile: () => api.get('/auth/profile'),
+  me: () => api.get('/auth/profile'),
 };
 
 export const securityAPI = {
-  scanPayload: (payload) => api.post('/security/scan', payload),
+  scan: (data) => api.post('/security/scan', data),
+  scanPayload: (data) => api.post('/security/scan', data),
   getLogs: (params) => api.get('/security/logs', { params }),
   getMetrics: () => api.get('/security/metrics'),
 };
 
 export const policyAPI = {
   getPolicies: () => api.get('/policies'),
-  updatePolicy: (policyData) => api.put('/policies', policyData),
+  updatePolicy: (id, policyData) => {
+    let targetId = id;
+    let payload = policyData;
+    if (typeof id === 'object' && !policyData) {
+      payload = id;
+      targetId = payload.id || 'pol-001-default';
+    }
+    return api.put(`/policies/${targetId || 'pol-001-default'}`, payload);
+  },
 };
 
 export default api;

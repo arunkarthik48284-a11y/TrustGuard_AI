@@ -1,4 +1,9 @@
-const app = require('../backend/src/app');
+let app;
+try {
+  app = require('../backend/src/app');
+} catch (err) {
+  console.error('Failed to load backend app module:', err.message);
+}
 
 module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,5 +14,20 @@ module.exports = (req, res) => {
     return res.status(200).end();
   }
 
-  return app(req, res);
+  if (!app) {
+    return res.status(500).json({
+      error: 'Backend Initialization Exception',
+      message: 'TrustGuard backend engine loading failed.'
+    });
+  }
+
+  try {
+    return app(req, res);
+  } catch (err) {
+    console.error('Serverless Execution Exception:', err);
+    return res.status(500).json({
+      error: 'Serverless Runtime Exception',
+      message: err.message
+    });
+  }
 };

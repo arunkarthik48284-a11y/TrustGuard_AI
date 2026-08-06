@@ -5,12 +5,10 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Eye, 
-  ShieldAlert, 
-  CheckCircle2, 
-  X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  X
 } from 'lucide-react';
-import StatusBadge from './StatusBadge';
+import StatusBadge from './components/StatusBadge';
 
 const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange, onFilterChange }) => {
   const [selectedLog, setSelectedLog] = useState(null);
@@ -37,11 +35,11 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
     const headers = ['Log ID', 'Timestamp', 'Original Input', 'Processed Output', 'Risk Score', 'Risk Level', 'Blocked', 'PII Count', 'Threats Count'];
     const rows = logs.map(l => [
       l.id,
-      new Date(l.created_at).toISOString(),
+      new Date(l.created_at || Date.now()).toISOString(),
       `"${(l.original_input || '').replace(/"/g, '""')}"`,
       `"${(l.processed_output || '').replace(/"/g, '""')}"`,
-      l.risk_score,
-      l.max_risk_level,
+      l.risk_score || 0,
+      l.max_risk_level || 'low',
       l.is_blocked ? 'YES' : 'NO',
       Array.isArray(l.pii_detected) ? l.pii_detected.length : 0,
       Array.isArray(l.threats_detected) ? l.threats_detected.length : 0
@@ -132,21 +130,21 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
                 logs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-800/40 transition-colors">
                     <td className="py-3.5 px-4 font-mono text-[11px]">
-                      <div className="font-semibold text-cyan-400">{log.id.slice(0, 16)}...</div>
-                      <div className="text-[10px] text-gray-500 mt-0.5">{new Date(log.created_at).toLocaleString()}</div>
+                      <div className="font-semibold text-cyan-400">{(log.id || '').slice(0, 16)}...</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5">{new Date(log.created_at || Date.now()).toLocaleString()}</div>
                     </td>
                     <td className="py-3.5 px-4 max-w-xs truncate font-mono text-gray-300">
                       {log.original_input}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-white">
                       <span className={`px-2 py-0.5 rounded text-xs ${
-                        log.risk_score >= 70 ? 'bg-rose-950 text-rose-400' : 'bg-gray-800 text-cyan-400'
+                        (log.risk_score || 0) >= 70 ? 'bg-rose-950 text-rose-400' : 'bg-gray-800 text-cyan-400'
                       }`}>
-                        {log.risk_score} / 100
+                        {log.risk_score || 0} / 100
                       </span>
                     </td>
                     <td className="py-3.5 px-4">
-                      <StatusBadge level={log.max_risk_level} isBlocked={log.is_blocked} />
+                      <StatusBadge level={log.max_risk_level || 'low'} isBlocked={Boolean(log.is_blocked)} />
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="text-gray-400 font-medium">
@@ -218,11 +216,11 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-900/60 p-3 rounded-xl border border-gray-800 text-xs">
               <div>
                 <span className="text-gray-400 block text-[10px] uppercase">Risk Level</span>
-                <StatusBadge level={selectedLog.max_risk_level} isBlocked={selectedLog.is_blocked} />
+                <StatusBadge level={selectedLog.max_risk_level || 'low'} isBlocked={Boolean(selectedLog.is_blocked)} />
               </div>
               <div>
                 <span className="text-gray-400 block text-[10px] uppercase">Risk Score</span>
-                <span className="font-extrabold text-white text-sm">{selectedLog.risk_score} / 100</span>
+                <span className="font-extrabold text-white text-sm">{selectedLog.risk_score || 0} / 100</span>
               </div>
               <div>
                 <span className="text-gray-400 block text-[10px] uppercase">Action Taken</span>
@@ -232,7 +230,7 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
               </div>
               <div>
                 <span className="text-gray-400 block text-[10px] uppercase">Timestamp</span>
-                <span className="text-gray-200 font-mono">{new Date(selectedLog.created_at).toLocaleTimeString()}</span>
+                <span className="text-gray-200 font-mono">{new Date(selectedLog.created_at || Date.now()).toLocaleTimeString()}</span>
               </div>
             </div>
 
@@ -257,7 +255,7 @@ const AuditTable = ({ logs = [], loading = false, pagination = {}, onPageChange,
                   <div className="flex flex-wrap gap-1.5">
                     {selectedLog.pii_detected.map((p, idx) => (
                       <span key={idx} className="text-xs px-2.5 py-1 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30 font-mono">
-                        [{p.type}] {p.value}
+                        [{p.type || 'PII'}] {p.value || JSON.stringify(p)}
                       </span>
                     ))}
                   </div>

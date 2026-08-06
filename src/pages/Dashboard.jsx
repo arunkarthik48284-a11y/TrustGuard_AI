@@ -27,8 +27,12 @@ const Dashboard = () => {
         securityAPI.getMetrics(),
         securityAPI.getLogs({ page: 1, limit: 5 })
       ]);
-      setMetrics(metricsRes.data.metrics);
-      setRecentLogs(logsRes.data.logs || []);
+
+      const extractedMetrics = metricsRes.data?.metrics || metricsRes.data?.data?.metrics || metricsRes.data;
+      const extractedLogs = logsRes.data?.logs || logsRes.data?.data?.logs || logsRes.data;
+
+      setMetrics(extractedMetrics || null);
+      setRecentLogs(Array.isArray(extractedLogs) ? extractedLogs : []);
     } catch (err) {
       console.warn('Dashboard telemetry fetch notice:', err);
     } finally {
@@ -225,11 +229,11 @@ const Dashboard = () => {
                     </div>
                     <div className="truncate">
                       <p className="text-xs font-mono text-gray-200 truncate">{log.original_input}</p>
-                      <p className="text-[10px] text-gray-500">{new Date(log.created_at).toLocaleTimeString()}</p>
+                      <p className="text-[10px] text-gray-500">{new Date(log.created_at || Date.now()).toLocaleTimeString()}</p>
                     </div>
                   </div>
                   <div className="shrink-0 flex items-center gap-2">
-                    <StatusBadge level={log.max_risk_level} isBlocked={log.is_blocked} />
+                    <StatusBadge level={log.max_risk_level || 'low'} isBlocked={Boolean(log.is_blocked)} />
                   </div>
                 </div>
               ))}

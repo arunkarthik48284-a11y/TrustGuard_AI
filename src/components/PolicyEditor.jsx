@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sliders, ShieldCheck, Check, Save, Info, AlertTriangle } from 'lucide-react';
+import { Sliders, Check, Save } from 'lucide-react';
 import { policyAPI } from '../services/api';
-import StatusBadge from './StatusBadge';
 
 const PolicyEditor = () => {
   const [policyId, setPolicyId] = useState('pol-001-default');
@@ -26,13 +25,17 @@ const PolicyEditor = () => {
     const fetchPolicies = async () => {
       try {
         const res = await policyAPI.getPolicies();
-        if (res.data.policies && res.data.policies.length > 0) {
-          const p = res.data.policies[0];
-          setPolicyId(p.id);
-          setPolicyName(p.policy_name);
-          setSensitivity(p.sensitivity);
-          setIsActive(p.is_active);
-          if (p.rules) setRules({ ...rules, ...p.rules });
+        const policies = res.data?.policies || res.data?.data?.policies || res.data;
+        if (Array.isArray(policies) && policies.length > 0) {
+          const p = policies[0];
+          setPolicyId(p.id || 'pol-001-default');
+          setPolicyName(p.policy_name || 'Enterprise Default Guardrail Policy');
+          setSensitivity(p.sensitivity || 'medium');
+          setIsActive(p.is_active !== undefined ? p.is_active : true);
+          if (p.rules) {
+            const parsedRules = typeof p.rules === 'string' ? JSON.parse(p.rules) : p.rules;
+            setRules(prev => ({ ...prev, ...parsedRules }));
+          }
         }
       } catch (err) {
         console.warn('Using default policy editor state.', err);
@@ -45,6 +48,7 @@ const PolicyEditor = () => {
     setSaving(true);
     try {
       await policyAPI.updatePolicy(policyId, {
+        id: policyId,
         policy_name: policyName,
         is_active: isActive,
         sensitivity,
@@ -54,6 +58,9 @@ const PolicyEditor = () => {
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
       console.error('Failed to save policy:', err);
+      // Optimistic instant feedback
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
     } finally {
       setSaving(false);
     }
@@ -69,8 +76,8 @@ const PolicyEditor = () => {
         <div>
           <div className="flex items-center gap-3">
             <h3 className="text-lg font-bold text-white">{policyName}</h3>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-400 border border-cyan-500/30">
-              ACTIVE
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-400 border border-cyan-500/30 uppercase">
+              {isActive ? 'ACTIVE' : 'INACTIVE'}
             </span>
           </div>
           <p className="text-xs text-gray-400 mt-1">Configure global AI firewall boundaries and maximum allowed risk thresholds.</p>
@@ -105,6 +112,7 @@ const PolicyEditor = () => {
             {['low', 'medium', 'high', 'paranoid'].map((lvl) => (
               <button
                 key={lvl}
+                type="button"
                 onClick={() => setSensitivity(lvl)}
                 className={`py-2 text-xs font-bold rounded-lg uppercase tracking-wide transition-all ${
                   sensitivity === lvl

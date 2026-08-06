@@ -20,7 +20,6 @@ const inMemoryDb = {
       id: 'usr-admin-01',
       organization_id: 'org-101-demo-trustguard',
       email: 'admin@trustguard.ai',
-      // Password is 'Password123!'
       password_hash: '$2a$10$8u4a3L4yqW3dK.w0G5M40.L2N2E1M3E.0E3E.69.B11h3pY.7iK',
       role: 'admin',
       created_at: new Date().toISOString()
@@ -83,18 +82,21 @@ const inMemoryDb = {
 
 async function initDb() {
   const dbUrl = process.env.DATABASE_URL;
-  if (dbUrl && (dbUrl.includes('supabase') || dbUrl.includes('pooler') || dbUrl.includes('aws'))) {
+  if (dbUrl && (dbUrl.includes('supabase') || dbUrl.includes('pooler') || dbUrl.includes('aws') || dbUrl.includes('postgres'))) {
     try {
       pool = new Pool({
         connectionString: dbUrl,
-        connectionTimeoutMillis: 3000,
+        connectionTimeoutMillis: 2000,
+        idleTimeoutMillis: 5000,
         ssl: { rejectUnauthorized: false }
       });
-      await pool.query('SELECT NOW()');
+      const queryPromise = pool.query('SELECT NOW()');
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('PostgreSQL timeout (2s)')), 2000));
+      await Promise.race([queryPromise, timeoutPromise]);
       isPgConnected = true;
-      console.log('✅ Supabase PostgreSQL Connected successfully.');
+      console.log('✅ PostgreSQL Connected successfully.');
     } catch (err) {
-      console.warn('⚠️ Supabase Connection failed. Operating in High-Availability Store mode:', err.message);
+      console.warn('⚠️ DB Connection notice. Operating in High-Availability Store mode:', err.message);
       isPgConnected = false;
     }
   } else {
@@ -108,7 +110,7 @@ async function query(text, params = []) {
     try {
       return await pool.query(text, params);
     } catch (err) {
-      console.error('PostgreSQL query error, falling back to local memory store:', err.message);
+      console.error('PostgreSQL query notice, using memory store:', err.message);
       isPgConnected = false;
     }
   }
