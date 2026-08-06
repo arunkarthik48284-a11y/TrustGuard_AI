@@ -57,15 +57,34 @@ const ScanPlayground = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setErrorMsg('File size exceeds 2MB limit for text security inspection.');
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg('File size exceeds 5MB limit for text security inspection.');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const content = event.target?.result;
+      let content = event.target?.result;
       if (typeof content === 'string') {
+        // Check for binary file null bytes
+        if (content.includes('\0')) {
+          setErrorMsg('Uploaded file contains binary data. Please upload a valid text document (.txt, .json, .log, .csv, .py, .js, .md).');
+          return;
+        }
+
+        const trimmed = content.trim();
+        if (!trimmed) {
+          setErrorMsg('Uploaded file is empty. Please select a valid document with text content.');
+          return;
+        }
+
+        // Gracefully truncate large files to 100,000 characters for LLM firewall scanning
+        if (trimmed.length > 100000) {
+          content = trimmed.slice(0, 100000) + '\n\n[TRUNCATED: File payload capped at 100,000 characters for guardrail evaluation]';
+        } else {
+          content = trimmed;
+        }
+
         setInputText(content);
         setFileName(`${file.name} (${Math.round(file.size / 1024)} KB)`);
         setScanResult(null);
@@ -79,8 +98,9 @@ const ScanPlayground = () => {
   };
 
   const handleScan = async () => {
-    if (!inputText.trim()) {
-      setErrorMsg('Please enter or upload a text payload to evaluate.');
+    const cleanText = (inputText || '').trim();
+    if (!cleanText) {
+      setErrorMsg('Please enter or upload a valid text payload to evaluate.');
       return;
     }
 
@@ -91,7 +111,7 @@ const ScanPlayground = () => {
     try {
       const scanFn = securityAPI.scanPayload || securityAPI.scan;
       const response = await scanFn({
-        input_text: inputText,
+        input_text: cleanText,
         strictness_level: strictness,
         mask_pii: options.maskPII,
         check_prompt_injection: options.blockInjection,
@@ -99,7 +119,7 @@ const ScanPlayground = () => {
       });
 
       const evaluation = response?.data?.evaluation || response?.data?.data?.evaluation || response?.data?.data || response?.data || {
-        masked_text: inputText,
+        masked_text: cleanText,
         risk_score: 10,
         risk_level: 'low',
         pii_detected: [],

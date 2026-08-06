@@ -31,11 +31,12 @@ api.interceptors.response.use(
   (error) => {
     let message = 'An unexpected security engine error occurred.';
     if (error.response) {
-      const errData = error.response.data?.error || error.response.data?.message || error.response.data;
-      if (typeof errData === 'string') {
-        message = errData;
-      } else if (errData && typeof errData === 'object') {
-        message = errData.message || errData.error || JSON.stringify(errData);
+      const data = error.response.data || {};
+      const errText = data.message || data.error;
+      if (typeof errText === 'string') {
+        message = errText;
+      } else if (errText && typeof errText === 'object') {
+        message = errText.message || errText.error || JSON.stringify(errText);
       } else if (error.response.status === 401) {
         message = 'Session expired. Please sign in again.';
       } else if (error.response.status === 403) {
