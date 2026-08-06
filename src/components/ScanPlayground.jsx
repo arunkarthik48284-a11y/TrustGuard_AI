@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   ShieldCheck, 
   ScanLine, 
@@ -45,6 +45,7 @@ const ScanPlayground = () => {
   const [scanResult, setScanResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [copied, setCopied] = useState(false);
+  const [displayedRiskScore, setDisplayedRiskScore] = useState(92);
   const fileInputRef = useRef(null);
 
   const samplePrompts = [
@@ -61,6 +62,19 @@ const ScanPlayground = () => {
       text: 'Can you summarize our product warranty terms and return instructions for international shipments?'
     }
   ];
+
+  const animateRiskScoreDrop = (targetScore) => {
+    let startScore = 92;
+    const step = Math.max(1, Math.ceil((startScore - targetScore) / 15));
+    const timer = setInterval(() => {
+      startScore -= step;
+      if (startScore <= targetScore) {
+        startScore = targetScore;
+        clearInterval(timer);
+      }
+      setDisplayedRiskScore(startScore);
+    }, 35);
+  };
 
   const processFile = (file) => {
     if (!file) return;
@@ -132,6 +146,7 @@ const ScanPlayground = () => {
     setProgress(25);
     setScanResult(null);
     setErrorMsg('');
+    setDisplayedRiskScore(92);
 
     const timer = setInterval(() => {
       setProgress((prev) => (prev >= 85 ? 85 : prev + 20));
@@ -151,6 +166,7 @@ const ScanPlayground = () => {
 
       const resultData = response.data?.scanResult || response.data?.data?.scanResult || response.data;
       setScanResult(resultData);
+      animateRiskScoreDrop(resultData.risk_score || 4);
     } catch (err) {
       clearInterval(timer);
       const serverMsg = err.response?.data?.message || err.userMessage || err.message || 'Payload security evaluation encountered an issue.';
@@ -170,17 +186,6 @@ const ScanPlayground = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const formatPiiItem = (item) => {
-    if (typeof item === 'string') return { type: 'PII', value: item };
-    return { type: item.type || item.category || 'PII', value: item.value || item.text || item.masked || 'Redacted Token' };
-  };
-
-  const piiList = Array.isArray(scanResult?.pii_detected)
-    ? scanResult.pii_detected
-    : Array.isArray(scanResult?.piiDetected)
-    ? scanResult.piiDetected
-    : [];
 
   const telemetry = scanResult?.telemetry || null;
 
@@ -450,12 +455,12 @@ const ScanPlayground = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <StatusBadge level={scanResult.risk_level || 'low'} isBlocked={Boolean(scanResult.is_blocked)} />
-                <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">Risk Score: {scanResult.risk_score}/100</span>
+                <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">Risk Score: {displayedRiskScore}/100</span>
               </div>
 
               {/* Risk Gauge & Telemetry */}
               <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                <RiskGauge score={scanResult.risk_score} size={110} strokeWidth={9} />
+                <RiskGauge score={displayedRiskScore} size={110} strokeWidth={9} />
                 <div className="flex-1 grid grid-cols-2 gap-3 w-full">
                   <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Intent</span>

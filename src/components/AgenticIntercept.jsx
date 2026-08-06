@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bot, 
   Play, 
   Pause, 
   RotateCcw, 
   ShieldAlert, 
-  ShieldCheck, 
   CheckCircle, 
-  Database, 
-  Globe, 
-  Terminal, 
   Lock,
   ArrowRight,
   Sparkles,
-  Download
+  OctagonAlert,
+  Clock
 } from 'lucide-react';
 import RiskGauge from './RiskGauge';
 
@@ -59,41 +56,91 @@ const DEFAULT_TOOL_CHAIN = [
 const AgenticIntercept = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
-  const [policyEnforced, setPolicyEnforced] = useState(true);
+  const [displayedScore, setDisplayedScore] = useState(0);
+  const [blockToast, setBlockToast] = useState(null); // { elapsedTimeMs: 1420 }
+  const [isShaking, setIsShaking] = useState(false);
+
+  const startTimeRef = useRef(null);
+
+  // Animated Count Up effect for Threat Gauge Score
+  const animateScore = (targetScore) => {
+    let current = displayedScore;
+    const step = Math.max(1, Math.ceil((targetScore - current) / 12));
+    const timer = setInterval(() => {
+      current += step;
+      if (current >= targetScore) {
+        current = targetScore;
+        clearInterval(timer);
+      }
+      setDisplayedScore(current);
+    }, 30);
+  };
 
   useEffect(() => {
     let interval;
     if (isRunning) {
       interval = setInterval(() => {
         setCurrentStep((prev) => {
-          if (prev >= DEFAULT_TOOL_CHAIN.length) {
+          const next = prev + 1;
+          if (next > DEFAULT_TOOL_CHAIN.length) {
             setIsRunning(false);
             return prev;
           }
-          return prev + 1;
+
+          const stepData = DEFAULT_TOOL_CHAIN[next - 1];
+
+          // Trigger dramatic block moment on Step 3
+          if (stepData.status === 'blocked') {
+            const elapsed = startTimeRef.current ? Date.now() - startTimeRef.current : 1420;
+            setBlockToast({ elapsedTimeMs: elapsed });
+            setIsShaking(true);
+            setTimeout(() => setIsShaking(false), 600);
+            animateScore(stepData.riskScore);
+            setIsRunning(false); // Stop chain immediately
+          } else {
+            animateScore(stepData.riskScore);
+          }
+
+          return next;
         });
-      }, 1200);
+      }, 1000);
     }
     return () => clearInterval(interval);
   }, [isRunning]);
 
   const handleStart = () => {
     setCurrentStep(1);
+    setDisplayedScore(DEFAULT_TOOL_CHAIN[0].riskScore);
+    setBlockToast(null);
+    setIsShaking(false);
+    startTimeRef.current = Date.now();
     setIsRunning(true);
   };
 
   const handleReset = () => {
     setIsRunning(false);
     setCurrentStep(0);
+    setDisplayedScore(0);
+    setBlockToast(null);
+    setIsShaking(false);
+    startTimeRef.current = null;
   };
 
   const handleNextStep = () => {
     if (currentStep < DEFAULT_TOOL_CHAIN.length) {
-      setCurrentStep(prev => prev + 1);
+      const next = currentStep + 1;
+      setCurrentStep(next);
+      const stepData = DEFAULT_TOOL_CHAIN[next - 1];
+
+      if (stepData.status === 'blocked') {
+        const elapsed = startTimeRef.current ? Date.now() - startTimeRef.current : 1420;
+        setBlockToast({ elapsedTimeMs: elapsed });
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 600);
+      }
+      animateScore(stepData.riskScore);
     }
   };
-
-  const currentRiskScore = currentStep === 0 ? 0 : DEFAULT_TOOL_CHAIN[Math.min(currentStep - 1, DEFAULT_TOOL_CHAIN.length - 1)].riskScore;
 
   return (
     <div className="space-y-6">
@@ -142,13 +189,33 @@ const AgenticIntercept = () => {
         </div>
       </div>
 
+      {/* Dramatic Exfiltration Block Alert Toast */}
+      {blockToast && (
+        <div className="p-4 rounded-2xl bg-rose-500/15 border-2 border-rose-500/50 flex items-center justify-between text-rose-800 dark:text-rose-200 shadow-xl shadow-rose-500/20 animate-shake glow-rose">
+          <div className="flex items-center gap-3">
+            <OctagonAlert className="w-6 h-6 text-rose-600 dark:text-rose-400 shrink-0 animate-bounce" strokeWidth={2} />
+            <div>
+              <h4 className="text-sm font-black tracking-wide flex items-center gap-2">
+                🛑 Exfiltration Attempt Intercepted & Blocked
+              </h4>
+              <p className="text-xs opacity-90 mt-0.5 font-medium">
+                TrustGuard policy <strong className="font-mono">POL-AGENT-04</strong> halted unauthorized external POST to attacker endpoint before data egress.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-xs font-mono font-bold text-rose-300 shrink-0">
+            <Clock className="w-3.5 h-3.5" /> {blockToast.elapsedTimeMs}ms
+          </div>
+        </div>
+      )}
+
       {/* Main Grid: Tool Call Execution Chain vs Live Firewall Telemetry */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Columns: Sequential Agent Tool Call Step List */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-emerald-500" />
+              <Bot className="w-4 h-4 text-emerald-500" />
               Agent Action Execution Chain (Steps 1 - 4)
             </h3>
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
@@ -157,23 +224,28 @@ const AgenticIntercept = () => {
           </div>
 
           <div className="space-y-3">
-            {DEFAULT_TOOL_CHAIN.map((toolCall, idx) => {
+            {DEFAULT_TOOL_CHAIN.map((toolCall) => {
               const isActive = currentStep === toolCall.step;
               const isPast = currentStep > toolCall.step;
               const isFuture = currentStep < toolCall.step;
+
+              const isChainBlocked = currentStep >= 3;
+              const isHaltedStep = toolCall.step === 4 && isChainBlocked;
 
               return (
                 <div
                   key={toolCall.step}
                   className={`p-4 rounded-2xl border transition-all ${
-                    isActive
-                      ? toolCall.status === 'blocked'
-                        ? 'bg-rose-500/10 border-rose-500/40 ring-2 ring-rose-500/30'
-                        : 'bg-emerald-500/10 border-emerald-500/40 ring-2 ring-emerald-500/30'
+                    isActive && toolCall.status === 'blocked'
+                      ? `${isShaking ? 'animate-shake' : ''} bg-rose-500/15 border-rose-500/60 ring-2 ring-rose-500/40 glow-rose`
+                      : isActive
+                      ? 'bg-emerald-500/10 border-emerald-500/40 ring-2 ring-emerald-500/30'
                       : isPast
                       ? toolCall.status === 'blocked'
-                        ? 'bg-rose-500/10 border-rose-500/30'
+                        ? 'bg-rose-500/10 border-rose-500/40'
                         : 'bg-slate-900/40 border-slate-800'
+                      : isHaltedStep
+                      ? 'bg-slate-900/20 border-slate-800/60 opacity-60'
                       : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 opacity-60'
                   }`}
                 >
@@ -181,13 +253,15 @@ const AgenticIntercept = () => {
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 ${
-                          toolCall.status === 'blocked'
+                          toolCall.status === 'blocked' && (isActive || isPast)
                             ? 'bg-rose-500/20 text-rose-500 border border-rose-500/40'
-                            : toolCall.status === 'halted'
+                            : isHaltedStep
                             ? 'bg-slate-800 text-slate-400 border border-slate-700'
-                            : toolCall.status === 'redacted'
+                            : toolCall.status === 'redacted' && (isActive || isPast)
                             ? 'bg-amber-500/20 text-amber-500 border border-amber-500/40'
-                            : 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/40'
+                            : isActive || isPast
+                            ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/40'
+                            : 'bg-slate-800 text-slate-500 border border-slate-700'
                         }`}
                       >
                         {toolCall.step}
@@ -210,17 +284,17 @@ const AgenticIntercept = () => {
 
                     {/* Status Badge */}
                     <div>
-                      {isFuture ? (
+                      {isHaltedStep ? (
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700 uppercase">
+                          HALTED
+                        </span>
+                      ) : isFuture ? (
                         <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 uppercase">
-                          Queued
+                          QUEUED
                         </span>
                       ) : toolCall.status === 'blocked' ? (
                         <span className="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40 uppercase flex items-center gap-1 animate-pulse">
-                          <ShieldAlert className="w-3 h-3" /> Intercepted & Blocked
-                        </span>
-                      ) : toolCall.status === 'halted' ? (
-                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700 uppercase">
-                          Execution Halted
+                          <ShieldAlert className="w-3 h-3 text-rose-500" /> BLOCKED
                         </span>
                       ) : toolCall.status === 'redacted' ? (
                         <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 uppercase flex items-center gap-1">
@@ -228,14 +302,14 @@ const AgenticIntercept = () => {
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 uppercase flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> Step Passed
+                          <CheckCircle className="w-3 h-3 text-emerald-500" /> Passed
                         </span>
                       )}
                     </div>
                   </div>
 
                   {/* Reasoning Trace Explanation */}
-                  {(isActive || isPast) && (
+                  {(isActive || isPast || isHaltedStep) && (
                     <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
                       <Sparkles className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                       <div>
@@ -257,7 +331,7 @@ const AgenticIntercept = () => {
             </h3>
 
             <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-              <RiskGauge score={currentRiskScore} size={130} strokeWidth={10} />
+              <RiskGauge score={displayedScore} size={130} strokeWidth={10} />
               <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Agent Threat Score
               </span>

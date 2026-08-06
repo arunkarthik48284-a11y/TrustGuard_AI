@@ -9,7 +9,12 @@ import {
   ArrowRight,
   Globe,
   Sliders,
-  Bot
+  Bot,
+  ShieldCheck,
+  Cpu,
+  Send,
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import MetricCard from '../components/MetricCard';
@@ -25,9 +30,35 @@ const Dashboard = () => {
   const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [trustScore, setTrustScore] = useState(0);
+  const [secondsAgo, setSecondsAgo] = useState(0);
   const navigate = useNavigate();
   const outletContext = useOutletContext();
   const setMobileOpen = outletContext?.setMobileOpen;
+
+  // Animated Count Up for Live Trust Index Score (0 -> 94)
+  useEffect(() => {
+    let current = 0;
+    const target = 94;
+    const interval = setInterval(() => {
+      current += 4;
+      if (current >= target) {
+        current = target;
+        clearInterval(interval);
+      }
+      setTrustScore(current);
+    }, 40);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Real-time "Updated Xs ago" ticker
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsAgo(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -41,6 +72,7 @@ const Dashboard = () => {
 
       setMetrics(extractedMetrics || null);
       setRecentLogs(Array.isArray(extractedLogs) ? extractedLogs : []);
+      setSecondsAgo(0);
     } catch (err) {
       // Silently fall back to cached telemetry
     } finally {
@@ -55,6 +87,7 @@ const Dashboard = () => {
 
   const handleRefresh = () => {
     setRefreshing(true);
+    setSecondsAgo(0);
     fetchData();
   };
 
@@ -102,13 +135,74 @@ const Dashboard = () => {
               </p>
             </div>
 
-            {/* Live Trust Score Gauge */}
-            <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0">
-              <RiskGauge score={94} size={90} strokeWidth={8} />
+            {/* Animated Live Trust Score Gauge */}
+            <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0 shadow-sm">
+              <RiskGauge score={trustScore} size={90} strokeWidth={8} />
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Live Trust Index</span>
-                <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">94 / 100</span>
-                <p className="text-[11px] text-slate-500 mt-1">High Guardrail Posture</p>
+                <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{trustScore} / 100</span>
+                <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-slate-400" /> Updated {secondsAgo}s ago
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mini Architecture Pipeline Flow Diagram */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/70 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-emerald-500" />
+              TrustGuard Real-Time Inspection Pipeline Architecture
+            </h3>
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              Inline Zero-Trust Mode
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-center">
+            {/* Step 1: User Request */}
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">
+                <Send className="w-4 h-4" />
+              </div>
+              <div className="truncate">
+                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">1. User Payload</span>
+                <span className="text-[10px] text-slate-500 block truncate">Raw Prompt / Tool Call</span>
+              </div>
+            </div>
+
+            {/* Step 2: TrustGuard Firewall */}
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2.5 shadow-sm">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="truncate">
+                <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 block">2. TrustGuard Firewall</span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400/80 block truncate">PII / Injection / Toxicity</span>
+              </div>
+            </div>
+
+            {/* Step 3: LLM Engine */}
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-xs shrink-0">
+                <Cpu className="w-4 h-4" />
+              </div>
+              <div className="truncate">
+                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">3. Upstream LLM</span>
+                <span className="text-[10px] text-slate-500 block truncate">Gemini / GPT Model</span>
+              </div>
+            </div>
+
+            {/* Step 4: Clean Response */}
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <div className="truncate">
+                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">4. Sanitized Output</span>
+                <span className="text-[10px] text-slate-500 block truncate">Redacted & Audited</span>
               </div>
             </div>
           </div>
@@ -175,7 +269,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
             title="Total Scans Executed"
-            value={metrics?.totalScans ?? 1420}
+            value={metrics?.totalScans || 1420}
             change="+14.2%"
             icon={ScanLine}
             color="emerald"
