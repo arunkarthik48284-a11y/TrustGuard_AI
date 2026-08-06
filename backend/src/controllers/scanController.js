@@ -1,6 +1,6 @@
-const { z } = require('zod');
 const { scanAndMaskPII } = require('../services/piiEngine');
 const { analyzeSecurityPayload } = require('../services/geminiService');
+const { analyzeUrlPayload } = require('../services/urlScanService');
 const { query } = require('../config/db');
 
 async function scanPayload(req, res) {
@@ -61,7 +61,6 @@ async function scanPayload(req, res) {
     });
   } catch (err) {
     console.error('Security Scan Controller Error:', err);
-    // Return graceful heuristic evaluation fallback so the UI never displays blank output
     const fallbackText = req.body?.input_text || '';
     const fallbackPii = scanAndMaskPII(fallbackText, true);
 
@@ -82,6 +81,61 @@ async function scanPayload(req, res) {
   }
 }
 
+async function scanUrl(req, res) {
+  try {
+    const body = req.body || {};
+    const url = body.url || body.target_url;
+
+    if (!url || typeof url !== 'string' || !url.trim()) {
+      return res.status(400).json({ error: 'Target URL parameter is required.' });
+    }
+
+    // Execute URL Threat Analysis
+    const urlEvaluation = await analyzeUrlPayload(url, body.options || {});
+
+    // Save Audit Record
+    const orgId = req.user ? req.user.organization_id : 'org-101-demo-trustguard';
+    const userId = req.user ? req.user.id : 'usr-admin-01';
+
+    let savedLog = null;
+    try {
+      const insertResult = await query(
+        `INSERT INTO security_logs 
+         (organization_id, user_id, original_input, processed_output, risk_score, max_risk_level, pii_detected, threats_detected, is_blocked)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [
+          orgId,
+          userId,
+          `URL Scan: ${urlEvaluation.target_url}`,
+          urlEvaluation.target_url,
+          urlEvaluation.risk_score,
+          urlEvaluation.risk_level,
+          JSON.stringify([]),
+          JSON.stringify(urlEvaluation.threats_detected || []),
+          urlEvaluation.is_blocked
+        ]
+      );
+      savedLog = insertResult && insertResult.rows ? insertResult.rows[0] : null;
+    } catch (dbErr) {
+      console.warn('DB log insertion notice:', dbErr.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      log_id: savedLog ? savedLog.id : `url-log-${Date.now()}`,
+      evaluation: urlEvaluation,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('URL Security Scan Controller Error:', err);
+    return res.status(500).json({
+      error: 'URL Scanner Exception',
+      message: 'Failed to complete URL threat security scan.'
+    });
+  }
+}
+
 module.exports = {
-  scanPayload
+  scanPayload,
+  scanUrl
 };

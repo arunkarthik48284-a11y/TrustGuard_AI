@@ -13,7 +13,7 @@ import MetricCard from '../components/MetricCard';
 import ThreatChart from '../components/ThreatChart';
 import StatusBadge from '../components/StatusBadge';
 import { securityAPI } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
@@ -21,6 +21,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
+  const outletContext = useOutletContext();
+  const setMobileOpen = outletContext?.setMobileOpen;
 
   const fetchData = async () => {
     try {
@@ -68,9 +70,9 @@ const Dashboard = () => {
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      <Navbar title="Security Command Center" />
+      <Navbar title="Security Command Center" onMenuClick={() => setMobileOpen && setMobileOpen(true)} />
 
-      <main className="p-6 max-w-7xl mx-auto space-y-6 relative z-10">
+      <main className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 relative z-10">
         {/* Enterprise Hero Banner */}
         <div className="relative rounded-2xl p-6 bg-slate-900/80 backdrop-blur-md border border-slate-800 overflow-hidden shadow-xl">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -87,7 +89,7 @@ const Dashboard = () => {
                   <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-emerald-400' : ''}`} strokeWidth={1.5} />
                 </button>
               </div>
-              <h2 className="text-2xl font-black text-slate-100 tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-100 tracking-tight">
                 AI Security & Data Redaction Intelligence
               </h2>
               <p className="text-xs text-slate-400 leading-relaxed">
@@ -97,7 +99,7 @@ const Dashboard = () => {
 
             <button
               onClick={() => navigate('/scanner')}
-              className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 shrink-0"
+              className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 shrink-0 min-h-[44px]"
             >
               <ScanLine className="w-4 h-4" strokeWidth={1.5} /> Open Scanner Playground
             </button>
@@ -218,7 +220,7 @@ const Dashboard = () => {
               </div>
               <button
                 onClick={() => navigate('/audit-logs')}
-                className="text-xs text-emerald-400 hover:underline font-semibold flex items-center gap-1"
+                className="text-xs text-emerald-400 hover:underline font-semibold flex items-center gap-1 min-h-[36px]"
               >
                 View Audit Logs <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} />
               </button>

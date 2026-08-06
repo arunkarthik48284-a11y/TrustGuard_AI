@@ -40,8 +40,6 @@ api.interceptors.response.use(
         message = 'Session expired. Please sign in again.';
       } else if (error.response.status === 403) {
         message = 'Unauthorized security action.';
-      } else if (error.response.status === 404) {
-        message = 'Requested security endpoint not found.';
       } else if (error.response.status >= 500) {
         message = 'Server security engine temporarily unavailable. Using local rules.';
       }
@@ -66,6 +64,8 @@ export const authAPI = {
 export const securityAPI = {
   scan: (data) => api.post('/security/scan', data),
   scanPayload: (data) => api.post('/security/scan', data),
+  scanURL: (data) => api.post('/security/scan-url', data),
+  scanUrl: (data) => api.post('/security/scan-url', data),
   getLogs: (params) => api.get('/security/logs', { params }),
   getMetrics: () => api.get('/security/metrics'),
 };

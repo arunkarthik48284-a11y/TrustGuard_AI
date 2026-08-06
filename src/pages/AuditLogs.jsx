@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import AuditTable from '../components/AuditTable';
 import { securityAPI } from '../services/api';
+import { useOutletContext } from 'react-router-dom';
 
 const AuditLogs = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
+  const outletContext = useOutletContext();
+  const setMobileOpen = outletContext?.setMobileOpen;
 
   const fetchLogs = async (params = {}) => {
     setLoading(true);
@@ -30,8 +33,8 @@ const AuditLogs = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 pb-12">
-      <Navbar title="Audit Logs & Compliance Trail" />
-      <main className="p-6 max-w-7xl mx-auto space-y-6">
+      <Navbar title="Audit Logs & Compliance Trail" onMenuClick={() => setMobileOpen && setMobileOpen(true)} />
+      <main className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
         <AuditTable
           logs={logs}
           loading={loading}
