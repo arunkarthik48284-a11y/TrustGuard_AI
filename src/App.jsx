@@ -19,7 +19,7 @@ const ProtectedLayout = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 dark:bg-slate-950 light:bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-400 rounded-full animate-spin"></div>
           <p className="text-xs text-emerald-500 font-semibold uppercase tracking-wider">Initializing TrustGuard Engine...</p>
@@ -33,7 +33,7 @@ const ProtectedLayout = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950 dark:bg-slate-950 light:bg-slate-50 text-slate-100 dark:text-slate-100 light:text-slate-900 transition-colors duration-200 font-sans">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans">
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className="flex-1 overflow-x-hidden w-full">
         <Outlet context={{ setMobileOpen }} />
