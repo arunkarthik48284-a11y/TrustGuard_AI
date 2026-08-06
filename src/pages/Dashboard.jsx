@@ -65,7 +65,7 @@ const Dashboard = () => {
     : defaultCategoryData;
 
   return (
-    <div className="min-h-screen bg-slate-950 dark:bg-slate-950 light:bg-slate-50 text-slate-100 dark:text-slate-100 light:text-slate-900 transition-colors duration-200 pb-12 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 pb-12 relative overflow-hidden">
       {/* Background Glow Overlay */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -74,25 +74,25 @@ const Dashboard = () => {
 
       <main className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 relative z-10">
         {/* Enterprise Hero Banner */}
-        <div className="relative rounded-2xl p-6 bg-slate-900/80 dark:bg-slate-900/80 light:bg-white backdrop-blur-md border border-slate-800 dark:border-slate-800 light:border-slate-200 overflow-hidden shadow-xl">
+        <div className="relative rounded-2xl p-6 bg-white dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xl">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1.5">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" strokeWidth={1.5} /> Real-Time LLM Firewall Active
                 </span>
                 <button
                   onClick={handleRefresh}
-                  className="p-1.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-100 text-slate-400 hover:text-emerald-400 border border-slate-800 dark:border-slate-800 light:border-slate-200 transition-colors"
+                  className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 hover:text-emerald-500 border border-slate-200 dark:border-slate-800 transition-colors"
                   title="Refresh Telemetry"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-emerald-400' : ''}`} strokeWidth={1.5} />
+                  <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-emerald-500' : ''}`} strokeWidth={1.5} />
                 </button>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-100 dark:text-slate-100 light:text-slate-900 tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                 AI Security & Data Redaction Intelligence
               </h2>
-              <p className="text-xs text-slate-400 dark:text-slate-400 light:text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Real-time firewall inspecting incoming prompts, blocking prompt injection attacks, redacting sensitive PII tokens, and auditing compliance across your LLM pipelines.
               </p>
             </div>
@@ -110,9 +110,9 @@ const Dashboard = () => {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-36 bg-slate-900/60 dark:bg-slate-900/60 light:bg-white rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-200 animate-pulse p-6 space-y-3">
-                <div className="w-1/2 h-4 bg-slate-800 dark:bg-slate-800 light:bg-slate-200 rounded"></div>
-                <div className="w-3/4 h-8 bg-slate-800 dark:bg-slate-800 light:bg-slate-200 rounded"></div>
+              <div key={i} className="h-36 bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 animate-pulse p-6 space-y-3">
+                <div className="w-1/2 h-4 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                <div className="w-3/4 h-8 bg-slate-200 dark:bg-slate-800 rounded"></div>
               </div>
             ))}
           </div>
@@ -159,17 +159,17 @@ const Dashboard = () => {
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-slate-900/70 dark:bg-slate-900/70 light:bg-white backdrop-blur-md p-6 rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-200 space-y-4">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-100 dark:text-slate-100 light:text-slate-900">Threat Trend Velocity</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-400 light:text-slate-500">Interceptions and scan volume timeline</p>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Threat Trend Velocity</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Interceptions and scan volume timeline</p>
               </div>
               <div className="flex items-center gap-4 text-xs font-semibold">
-                <span className="flex items-center gap-1.5 text-emerald-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Scans
+                <span className="flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Scans
                 </span>
-                <span className="flex items-center gap-1.5 text-rose-400">
+                <span className="flex items-center gap-1.5 text-rose-500 dark:text-rose-400">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Blocked
                 </span>
               </div>
@@ -178,10 +178,10 @@ const Dashboard = () => {
           </div>
 
           {/* Compliance Readiness Matrix */}
-          <div className="bg-slate-900/70 dark:bg-slate-900/70 light:bg-white backdrop-blur-md p-6 rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-200 space-y-4">
+          <div className="bg-white dark:bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
             <div>
-              <h3 className="text-base font-bold text-slate-100 dark:text-slate-100 light:text-slate-900">Compliance Readiness</h3>
-              <p className="text-xs text-slate-400 dark:text-slate-400 light:text-slate-500">Regulatory standards alignment</p>
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Compliance Readiness</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Regulatory standards alignment</p>
             </div>
 
             <div className="space-y-4">
@@ -191,13 +191,13 @@ const Dashboard = () => {
                 { name: 'SOC 2 Type II', score: metrics?.frameworks?.SOC2 || 94 },
                 { name: 'ISO 27001 Standard', score: metrics?.frameworks?.ISO27001 || 95 }
               ].map((fw) => (
-                <div key={fw.name} className="p-3.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-50 border border-slate-800 dark:border-slate-800 light:border-slate-200 space-y-2">
+                <div key={fw.name} className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-300 dark:text-slate-300 light:text-slate-700">{fw.name}</span>
-                    <span className="font-bold text-emerald-500">{fw.score}%</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">{fw.name}</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-500">{fw.score}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-900 dark:bg-slate-900 light:bg-slate-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${fw.score}%` }}></div>
+                  <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full" style={{ width: `${fw.score}%` }}></div>
                   </div>
                 </div>
               ))}
@@ -207,20 +207,20 @@ const Dashboard = () => {
 
         {/* Bottom Section: Threat Distribution & Recent Audit Logs */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-slate-900/70 dark:bg-slate-900/70 light:bg-white backdrop-blur-md p-6 rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-200 space-y-4">
-            <h3 className="text-base font-bold text-slate-100 dark:text-slate-100 light:text-slate-900">Threat Category Distribution</h3>
+          <div className="bg-white dark:bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Threat Category Distribution</h3>
             <ThreatChart data={categoryBarData} type="bar" />
           </div>
 
-          <div className="lg:col-span-2 bg-slate-900/70 dark:bg-slate-900/70 light:bg-white backdrop-blur-md p-6 rounded-2xl border border-slate-800 dark:border-slate-800 light:border-slate-200 space-y-4">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-slate-100 dark:text-slate-100 light:text-slate-900">Live Interception Activity</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-400 light:text-slate-500">Most recent security scan records</p>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Live Interception Activity</h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Most recent security scan records</p>
               </div>
               <button
                 onClick={() => navigate('/audit-logs')}
-                className="text-xs text-emerald-400 hover:underline font-semibold flex items-center gap-1 min-h-[36px]"
+                className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold flex items-center gap-1 min-h-[36px]"
               >
                 View Audit Logs <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} />
               </button>
@@ -228,14 +228,14 @@ const Dashboard = () => {
 
             <div className="space-y-2.5">
               {recentLogs.map((log) => (
-                <div key={log.id} className="p-3.5 rounded-xl bg-slate-950 dark:bg-slate-950 light:bg-slate-50 border border-slate-800 dark:border-slate-800 light:border-slate-200 flex items-center justify-between gap-4 hover:border-slate-700 transition-colors">
+                <div key={log.id} className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
                   <div className="flex items-center gap-3 overflow-hidden">
-                    <div className={`p-2 rounded-lg ${log.is_blocked ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                    <div className={`p-2 rounded-lg ${log.is_blocked ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
                       {log.is_blocked ? <ShieldAlert className="w-4 h-4" strokeWidth={1.5} /> : <Lock className="w-4 h-4" strokeWidth={1.5} />}
                     </div>
                     <div className="truncate">
-                      <p className="text-xs font-mono text-slate-200 dark:text-slate-200 light:text-slate-800 truncate">{log.original_input}</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-500 light:text-slate-400 mt-0.5">{new Date(log.created_at || Date.now()).toLocaleTimeString()}</p>
+                      <p className="text-xs font-mono text-slate-800 dark:text-slate-200 truncate">{log.original_input}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-500 mt-0.5">{new Date(log.created_at || Date.now()).toLocaleTimeString()}</p>
                     </div>
                   </div>
                   <div className="shrink-0 flex items-center gap-2">
