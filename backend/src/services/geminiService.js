@@ -33,7 +33,8 @@ function cleanAndParseJSON(text) {
  */
 async function analyzeSecurityPayload(inputText, options = {}) {
   // Step 1: Execute PII Redaction
-  const piiResult = piiEngine.detectAndMaskPII(inputText);
+  const maskEnabled = options.mask_pii !== false && options.maskPII !== false;
+  const piiResult = piiEngine.scanAndMaskPII(inputText, maskEnabled);
 
   // Default Heuristic Evaluation
   let aiEvaluation = runHeuristicEvaluation(inputText, piiResult);
@@ -63,9 +64,9 @@ Respond ONLY with a valid JSON object matching this exact structure:
         ]
       });
 
-      // 10-second timeout promise race
+      // 8-second timeout promise race
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Gemini API timeout')), 10000)
+        setTimeout(() => reject(new Error('Gemini API timeout')), 8000)
       );
 
       const response = await Promise.race([aiPromise, timeoutPromise]);
@@ -91,14 +92,15 @@ Respond ONLY with a valid JSON object matching this exact structure:
   }
 
   // Final summary score calculation
-  const maxRisk = piiResult.detectedPII.length > 0 && aiEvaluation.risk_score < 40 ? 40 : aiEvaluation.risk_score;
+  const piiCount = (piiResult.pii_detected || []).length;
+  const maxRisk = piiCount > 0 && aiEvaluation.risk_score < 40 ? 40 : aiEvaluation.risk_score;
 
   return {
-    masked_text: piiResult.maskedText,
+    masked_text: piiResult.masked_text || inputText,
     risk_score: maxRisk,
     risk_level: maxRisk >= 80 ? 'critical' : maxRisk >= 60 ? 'high' : maxRisk >= 35 ? 'medium' : 'low',
-    pii_detected: piiResult.detectedPII,
-    threats_detected: aiEvaluation.threats_detected,
+    pii_detected: piiResult.pii_detected || [],
+    threats_detected: aiEvaluation.threats_detected || [],
     is_blocked: aiEvaluation.is_blocked || maxRisk >= 75,
     explanation: aiEvaluation.explanation
   };
@@ -108,7 +110,7 @@ Respond ONLY with a valid JSON object matching this exact structure:
  * Local Heuristic Security Analyzer Fallback
  */
 function runHeuristicEvaluation(inputText, piiResult) {
-  const lower = inputText.toLowerCase();
+  const lower = (inputText || '').toLowerCase();
   const threats = [];
   let riskScore = 10;
   let isPromptInjection = false;
@@ -142,11 +144,12 @@ function runHeuristicEvaluation(inputText, piiResult) {
     }
   }
 
-  if (piiResult.detectedPII.length > 0) {
+  const piiList = piiResult ? (piiResult.pii_detected || piiResult.detectedPII || []) : [];
+  if (piiList.length > 0) {
     riskScore = Math.max(riskScore, 45);
     threats.push({
       category: 'PII Exposure',
-      description: `Detected ${piiResult.detectedPII.length} sensitive identifier(s)`
+      description: `Detected ${piiList.length} sensitive identifier(s)`
     });
   }
 

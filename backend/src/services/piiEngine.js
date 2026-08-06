@@ -46,7 +46,7 @@ const PII_PATTERNS = [
  */
 function scanAndMaskPII(text, enabledMasking = true) {
   if (!text || typeof text !== 'string') {
-    return { masked_text: text || '', pii_detected: [] };
+    return { masked_text: text || '', maskedText: text || '', pii_detected: [], detectedPII: [] };
   }
 
   let maskedText = text;
@@ -56,7 +56,6 @@ function scanAndMaskPII(text, enabledMasking = true) {
     const matches = text.match(item.regex);
     if (matches && matches.length > 0) {
       matches.forEach(match => {
-        // Prevent duplicate logs for same match
         if (!piiDetected.some(p => p.type === item.type && p.value === match)) {
           piiDetected.push({
             type: item.type,
@@ -73,10 +72,13 @@ function scanAndMaskPII(text, enabledMasking = true) {
 
   return {
     masked_text: maskedText,
-    pii_detected: piiDetected
+    maskedText: maskedText,
+    pii_detected: piiDetected,
+    detectedPII: piiDetected
   };
 }
 
 module.exports = {
-  scanAndMaskPII
+  scanAndMaskPII,
+  detectAndMaskPII: scanAndMaskPII
 };
