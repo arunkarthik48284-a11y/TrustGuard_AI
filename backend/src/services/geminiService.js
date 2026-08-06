@@ -107,18 +107,26 @@ Respond ONLY with a valid JSON object matching this exact structure:
     }
   }
 
-  // Final summary score calculation
-  const piiCount = (piiResult.pii_detected || []).length;
-  const maxRisk = piiCount > 0 && aiEvaluation.risk_score < 40 ? 40 : aiEvaluation.risk_score;
+  // Final summary score calculation & dynamic explanation formatting
+  const piiList = piiResult.pii_detected || [];
+  const piiCount = piiList.length;
+  const maxRisk = piiCount > 0 && aiEvaluation.risk_score < 45 ? 45 : aiEvaluation.risk_score;
+
+  // Build dynamic explanation specifying exact PII tokens found
+  let dynamicExplanation = aiEvaluation.explanation;
+  if (piiCount > 0) {
+    const piiSummary = piiList.map(p => `${p.type} '${p.value}'`).join(', ');
+    dynamicExplanation = `Detected and redacted ${piiCount} sensitive token(s): ${piiSummary}. ${aiEvaluation.explanation}`;
+  }
 
   return {
     masked_text: piiResult.masked_text || inputText,
     risk_score: maxRisk,
     risk_level: maxRisk >= 80 ? 'critical' : maxRisk >= 60 ? 'high' : maxRisk >= 35 ? 'medium' : 'low',
-    pii_detected: piiResult.pii_detected || [],
+    pii_detected: piiList,
     threats_detected: aiEvaluation.threats_detected || [],
     is_blocked: aiEvaluation.is_blocked || maxRisk >= 75,
-    explanation: aiEvaluation.explanation
+    explanation: dynamicExplanation
   };
 }
 
@@ -165,7 +173,7 @@ function runHeuristicEvaluation(inputText, piiResult) {
     riskScore = Math.max(riskScore, 45);
     threats.push({
       category: 'PII Exposure',
-      description: `Detected ${piiList.length} sensitive identifier(s)`
+      description: `Detected ${piiList.length} sensitive identifier(s): ${piiList.map(p => p.value).join(', ')}`
     });
   }
 
@@ -177,7 +185,7 @@ function runHeuristicEvaluation(inputText, piiResult) {
     is_blocked: riskScore >= 75,
     threats_detected: threats,
     explanation: threats.length > 0
-      ? `Local firewall detected ${threats.length} security violation(s).`
+      ? `Local security firewall evaluated payload.`
       : 'Payload evaluated clear by local security heuristic firewall.'
   };
 }
