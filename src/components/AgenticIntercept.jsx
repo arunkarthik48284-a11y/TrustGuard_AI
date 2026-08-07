@@ -13,6 +13,7 @@ import {
   Clock
 } from 'lucide-react';
 import RiskGauge from './RiskGauge';
+import { securityAPI } from '../services/api';
 
 const DEFAULT_TOOL_CHAIN = [
   {
@@ -97,6 +98,12 @@ const AgenticIntercept = () => {
             setTimeout(() => setIsShaking(false), 600);
             animateScore(stepData.riskScore);
             setIsRunning(false); // Stop chain immediately
+
+            // Record Agentic Interception to backend security logs & live metrics
+            securityAPI.scanPayload({
+              input_text: `[AGENTIC_TOOL_INTERCEPT] Tool: ${stepData.tool}. Target: ${stepData.target}. Action: Exfiltrate database credentials via unauthorized webhook.`,
+              options: { sensitivity: 'paranoid', blockInjection: true }
+            }).catch(() => {});
           } else {
             animateScore(stepData.riskScore);
           }

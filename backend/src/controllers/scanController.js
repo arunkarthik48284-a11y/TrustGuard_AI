@@ -104,9 +104,35 @@ async function scanUrl(req, res) {
 
     const aiEvaluation = await analyzeUrlPayload(url);
 
+    const orgId = req.user ? req.user.organization_id : 'org-101-demo-trustguard';
+    const userId = req.user ? req.user.id : 'usr-admin-01';
+
+    let savedLog = null;
+    try {
+      const insertResult = await query(
+        `INSERT INTO security_logs 
+         (organization_id, user_id, original_input, processed_output, risk_score, max_risk_level, pii_detected, threats_detected, is_blocked)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [
+          orgId,
+          userId,
+          `URL Scan: ${url}`,
+          aiEvaluation.explanation || `Domain Reputation: ${aiEvaluation.domain_info?.reputation_score || 90}/100`,
+          aiEvaluation.risk_score,
+          aiEvaluation.risk_level,
+          JSON.stringify([]),
+          JSON.stringify(aiEvaluation.threats_detected || []),
+          aiEvaluation.is_blocked
+        ]
+      );
+      savedLog = insertResult && insertResult.rows ? insertResult.rows[0] : null;
+    } catch (dbErr) {
+      console.warn('URL DB log insertion notice:', dbErr.message);
+    }
+
     return res.status(200).json({
       success: true,
-      log_id: `url-log-${Date.now()}`,
+      log_id: savedLog ? savedLog.id : `url-log-${Date.now()}`,
       evaluation: aiEvaluation,
       timestamp: new Date().toISOString()
     });

@@ -32,6 +32,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [secondsAgo, setSecondsAgo] = useState(0);
+  const [trustIndex, setTrustIndex] = useState(94);
+  const [animatedTrustIndex, setAnimatedTrustIndex] = useState(94);
   const navigate = useNavigate();
   const outletContext = useOutletContext();
   const setMobileOpen = outletContext?.setMobileOpen;
@@ -44,6 +46,25 @@ const Dashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Smooth Count Up/Down Animation for Live Trust Index
+  useEffect(() => {
+    let current = animatedTrustIndex;
+    const target = trustIndex;
+    if (current === target) return;
+
+    const step = target > current ? 1 : -1;
+    const interval = setInterval(() => {
+      current += step;
+      if ((step > 0 && current >= target) || (step < 0 && current <= target)) {
+        current = target;
+        clearInterval(interval);
+      }
+      setAnimatedTrustIndex(current);
+    }, 40);
+
+    return () => clearInterval(interval);
+  }, [trustIndex]);
+
   const fetchData = async () => {
     try {
       const [metricsRes, logsRes] = await Promise.all([
@@ -54,8 +75,21 @@ const Dashboard = () => {
       const extractedMetrics = metricsRes.data?.metrics || metricsRes.data?.data?.metrics || metricsRes.data;
       const extractedLogs = logsRes.data?.logs || logsRes.data?.data?.logs || logsRes.data;
 
-      setMetrics(extractedMetrics || null);
-      setRecentLogs(Array.isArray(extractedLogs) ? extractedLogs : []);
+      if (extractedMetrics) {
+        setMetrics(extractedMetrics);
+        if (typeof extractedMetrics.trustIndex === 'number') {
+          setTrustIndex(extractedMetrics.trustIndex);
+        }
+      }
+      if (Array.isArray(extractedLogs)) {
+        setRecentLogs(extractedLogs);
+        // Calculate dynamic trust index from recent logs if server didn't provide one
+        if (!extractedMetrics?.trustIndex && extractedLogs.length > 0) {
+          const avgRisk = Math.round(extractedLogs.reduce((acc, l) => acc + (l.risk_score || 0), 0) / extractedLogs.length);
+          const computedIndex = Math.max(50, Math.min(100, 100 - avgRisk));
+          setTrustIndex(computedIndex);
+        }
+      }
       setSecondsAgo(0);
     } catch (err) {
       // Silently fall back to cached telemetry
@@ -65,8 +99,13 @@ const Dashboard = () => {
     }
   };
 
+  // Poll for live telemetry updates every 4 seconds
   useEffect(() => {
     fetchData();
+    const pollInterval = setInterval(() => {
+      fetchData();
+    }, 4000);
+    return () => clearInterval(pollInterval);
   }, []);
 
   const handleRefresh = () => {
@@ -103,6 +142,9 @@ const Dashboard = () => {
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1.5 shadow-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Real-Time LLM Firewall Active
                 </span>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  Updated {secondsAgo}s ago
+                </span>
                 <button
                   onClick={handleRefresh}
                   className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 hover:text-emerald-500 border border-slate-200 dark:border-slate-800 transition-colors"
@@ -117,6 +159,18 @@ const Dashboard = () => {
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Real-time firewall inspecting incoming prompts, blocking prompt injection attacks, redacting sensitive PII tokens, and auditing compliance across your LLM pipelines.
               </p>
+            </div>
+
+            {/* Live Trust Index Gauge Badge */}
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shrink-0">
+              <div className="text-right">
+                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Live Trust Index</span>
+                <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                  {animatedTrustIndex} <span className="text-xs text-slate-400 font-normal">/ 100</span>
+                </div>
+                <span className="text-[10px] text-slate-400 block font-medium">Recomputed from live scans</span>
+              </div>
+              <RiskGauge score={100 - animatedTrustIndex} size={64} strokeWidth={6} showLabel={false} />
             </div>
           </div>
         </div>

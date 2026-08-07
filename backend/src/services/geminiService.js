@@ -215,7 +215,7 @@ function runDynamicAnalysis(inputText, piiList, opts) {
     for (const item of injectionPatterns) {
       if (lower.includes(item.pattern)) {
         isInjection = true;
-        injectionScore += 55;
+        injectionScore += 56;
         detectedIntent = 'System Prompt Override Attack';
         threats.push({
           category: 'Prompt Injection',
