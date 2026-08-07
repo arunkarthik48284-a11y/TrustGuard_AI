@@ -35,11 +35,11 @@ function validateBody(schema) {
       if (req.body) {
         // Pre-normalize common field aliases for payload scanner
         if (!req.body.input_text) {
-          req.body.input_text = req.body.text || req.body.content || req.body.prompt || req.body.payload || '';
+          req.body.input_text = req.body.inputText || req.body.text || req.body.content || req.body.prompt || req.body.payload || '';
         }
         // Pre-normalize common field aliases for URL scanner
         if (!req.body.url) {
-          req.body.url = req.body.target_url || req.body.link || '';
+          req.body.url = req.body.target_url || req.body.link || req.body.targetUrl || '';
         }
       }
 

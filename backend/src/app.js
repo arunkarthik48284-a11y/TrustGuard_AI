@@ -39,7 +39,7 @@ app.get(['/api/health', '/health'], (req, res) => {
 // API Routes Mounting (Dual Prefix for Vercel Serverless & Express Dev Server)
 app.use(['/api/auth', '/auth'], authRoutes);
 app.use(['/api/security', '/security'], scanRoutes);
-app.use(['/api/security', '/security'], auditRoutes);
+app.use(['/api/security', '/security', '/api/audit', '/audit'], auditRoutes);
 app.use(['/api/policies', '/policies'], policyRoutes);
 
 // Global Error Handler
