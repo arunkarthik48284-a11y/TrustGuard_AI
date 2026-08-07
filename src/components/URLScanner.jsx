@@ -90,6 +90,9 @@ const URLScanner = () => {
 
   const threatList = Array.isArray(scanResult?.threats_detected) ? scanResult.threats_detected : [];
   const domainInfo = scanResult?.domain_info || {};
+  const isSslValid = domainInfo.ssl_valid !== undefined
+    ? Boolean(domainInfo.ssl_valid)
+    : (scanResult?.protocol === 'https' || (domainInfo.ssl_trust && String(domainInfo.ssl_trust).includes('Trusted')));
 
   return (
     <div className="space-y-6">
@@ -251,8 +254,8 @@ const URLScanner = () => {
                   </div>
                   <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block font-sans">SSL Valid</span>
-                    <span className={`font-bold ${domainInfo.ssl_valid ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                      {domainInfo.ssl_valid ? 'VALID SSL' : 'NO SSL / INVALID'}
+                    <span className={`font-bold ${isSslValid ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                      {isSslValid ? 'VALID SSL' : 'NO SSL / INVALID'}
                     </span>
                   </div>
                 </div>

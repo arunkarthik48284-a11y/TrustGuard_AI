@@ -104,6 +104,7 @@ async function analyzeUrlPayload(rawUrl, options = {}) {
       domain_info: {
         tld: 'none',
         ssl_trust: 'Untrusted',
+        ssl_valid: false,
         reputation_score: 5,
         ip_address: '0.0.0.0'
       },
@@ -171,6 +172,7 @@ Respond ONLY with a valid JSON object matching this exact structure:
         }
         if (parsedAi.ssl_trust) {
           evaluation.domain_info.ssl_trust = parsedAi.ssl_trust;
+          evaluation.domain_info.ssl_valid = parsedAi.ssl_trust.includes('Trusted');
         }
       }
     } catch (err) {
@@ -201,7 +203,10 @@ Respond ONLY with a valid JSON object matching this exact structure:
 function runLocalUrlAnalysis(targetUrl, hostname, protocol, path, liveMeta, options) {
   const threats = [];
   let riskScore = 12;
-  let sslTrust = protocol === 'https' ? 'Trusted (TLS 1.3)' : 'Untrusted (HTTP Unencrypted)';
+  const isHttps = protocol === 'https';
+  const isIpHost = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
+  let sslTrust = isHttps && !isIpHost ? 'Trusted (TLS 1.3)' : 'Untrusted (HTTP Unencrypted)';
+  const sslValid = isHttps && !isIpHost;
   
   const parts = hostname.split('.');
   const tld = parts.length > 1 ? '.' + parts[parts.length - 1] : '.local';
@@ -264,7 +269,6 @@ function runLocalUrlAnalysis(targetUrl, hostname, protocol, path, liveMeta, opti
   }
 
   // 4. IP Address Hostname Detection
-  const isIpHost = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
   if (isIpHost) {
     riskScore += 45;
     sslTrust = 'Untrusted / IP Host';
@@ -324,6 +328,7 @@ function runLocalUrlAnalysis(targetUrl, hostname, protocol, path, liveMeta, opti
     domain_info: {
       tld: tld,
       ssl_trust: sslTrust,
+      ssl_valid: sslValid,
       reputation_score: reputationScore,
       ip_address: assignedIp,
       live_title: liveMeta?.page_title || 'N/A'
