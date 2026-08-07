@@ -64,16 +64,21 @@ async function scanPayload(req, res) {
     const fallbackText = req.body?.input_text || '';
     const fallbackPii = scanAndMaskPII(fallbackText, true);
 
+    const hasHighPii = fallbackPii.pii_detected.some(p => p.type === 'SSN' || p.type === 'CREDIT_CARD' || p.type === 'API_KEY');
+    const hasPii = fallbackPii.pii_detected.length > 0;
+    const fallbackScore = hasHighPii ? 75 : hasPii ? 18 : 5;
+    const fallbackLevel = fallbackScore >= 61 ? 'high' : fallbackScore >= 31 ? 'medium' : 'low';
+
     return res.status(200).json({
       success: true,
       log_id: `log-${Date.now()}`,
       evaluation: {
         masked_text: fallbackPii.masked_text || fallbackText,
-        risk_score: fallbackPii.pii_detected.length > 0 ? 45 : 15,
-        risk_level: fallbackPii.pii_detected.length > 0 ? 'medium' : 'low',
+        risk_score: fallbackScore,
+        risk_level: fallbackLevel,
         pii_detected: fallbackPii.pii_detected || [],
         threats_detected: [],
-        is_blocked: false,
+        is_blocked: fallbackScore >= 65,
         explanation: 'Evaluated via TrustGuard security fallback engine.'
       },
       timestamp: new Date().toISOString()
