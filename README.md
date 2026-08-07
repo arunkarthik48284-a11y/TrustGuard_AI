@@ -24,10 +24,13 @@ vercel --prod
 1. Push this workspace to your GitHub / GitLab repository.
 2. Go to **[Vercel Dashboard](https://vercel.com/new)** ➔ Click **Import Repository**.
 3. Select your repository.
-4. Under **Environment Variables**, add the following keys:
-   - `DATABASE_URL` = `postgresql://postgres.[PROJECT-REF]:ArunK5arthik@aws-0-[REGION].pooler.supabase.com:6543/postgres`
-   - `JWT_SECRET` = `PUIC3KCcmhdPByLXk3zmJ5fMXv6ZE0V2X9ithO1+NvAAEZhowTWgevClP0d7oq5FspI9vOiIBOymzihmLCgl3w==`
-   - `GEMINI_API_KEY` = `AIzaSyD_bsJUEvHz1Vg3ax4XcE9vH0Ak-4mm2c0`
+4. Under **Environment Variables**, add the required environment keys below.
+> ⚠️ **IMPORTANT SECURITY NOTE**: Set these in your Vercel project's Environment Variables dashboard — never commit real secrets to this file or repository.
+
+   - `DATABASE_URL` = `postgresql://user:password@host:6543/postgres`
+   - `JWT_SECRET` = `your_jwt_secret_here`
+   - `GEMINI_API_KEY` = `your_gemini_api_key_here`
+
 5. Click **Deploy**!
 
 ---
@@ -47,7 +50,7 @@ c:\Users\ARUN\OneDrive\Desktop\Hackathon\
 │   │   ├── middleware/                  # JWT & Rate Limiting Middleware
 │   │   ├── routes/                      # Route Handlers (/api/auth, /api/security, /api/policies)
 │   │   └── services/                    # PII Engine & Google Gemini @google/genai SDK Service
-│   ├── .env
+│   ├── .env.example
 │   └── package.json
 ├── frontend/                            # Vite + React App
 │   ├── src/

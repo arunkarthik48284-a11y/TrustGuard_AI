@@ -15,7 +15,7 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required")
 });
 
-const JWT_FALLBACK_SECRET = 'trustguard_super_secret_jwt_key_2026_production_grade';
+const JWT_FALLBACK_SECRET = 'trustguard_dev_secret_placeholder';
 
 async function register(req, res) {
   try {

@@ -4,10 +4,16 @@ node_modules/
 
 # Environment variables (contains private credentials)
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+!.env.*.example
+*.env
 backend/.env
+backend/.env.*
+!backend/.env.example
 frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
 # Build outputs
 dist/

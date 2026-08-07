@@ -3,7 +3,7 @@ const http = require('http');
 const https = require('https');
 
 // Ensure GEMINI_KEY is available in Vercel serverless
-const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyD_bsJUEvHz1Vg3ax4XcE9vH0Ak-4mm2c0';
+const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
 
 // Initialize Gemini Client safely
 let aiClient = null;

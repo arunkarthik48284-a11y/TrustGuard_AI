@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_FALLBACK_SECRET = 'trustguard_super_secret_jwt_key_2026_production_grade';
+const JWT_FALLBACK_SECRET = 'trustguard_dev_secret_placeholder';
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];

@@ -2,7 +2,7 @@ const { GoogleGenAI } = require('@google/genai');
 const piiEngine = require('./piiEngine');
 
 // Ensure GEMINI_API_KEY is available in Vercel serverless
-const GEMINI_KEY = process.env.GEMINI_API_KEY || 'AIzaSyD_bsJUEvHz1Vg3ax4XcE9vH0Ak-4mm2c0';
+const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
 
 // Initialize Gemini Client safely
 let aiClient = null;
