@@ -119,11 +119,11 @@ async function analyzeUrlPayload(rawUrl, options = {}) {
   // Step 1: Fetch Real Live Website Metadata over HTTP
   const liveMetaData = await fetchLiveUrlMetadata(targetUrl);
 
-  // Step 2: Run Local Dynamic URL Security Inspection
+  // Step 2: Run Local Weighted Multi-Signal URL Analysis
   let evaluation = runLocalUrlAnalysis(targetUrl, hostname, protocol, path, liveMetaData, options);
 
-  // Step 3: Query Google Gemini AI for real-time live threat intelligence
-  if (aiClient && GEMINI_KEY) {
+  // Step 3: Query Google Gemini AI for real-time live threat intelligence if available
+  if (aiClient && GEMINI_KEY && !evaluation.domain_info.is_reputable_domain) {
     try {
       const systemInstruction = `You are TrustGuard AI URL Security & Phishing Analyzer.
 Analyze the target URL and live web server metadata for phishing risks, typosquatting, brand spoofing, malicious parameters, and credential harvesting.
@@ -198,38 +198,65 @@ Respond ONLY with a valid JSON object matching this exact structure:
 }
 
 /**
- * Local Dynamic URL Threat & Typosquatting Analyzer
+ * Local Dynamic Weighted Multi-Signal URL Threat & Typosquatting Analyzer
  */
 function runLocalUrlAnalysis(targetUrl, hostname, protocol, path, liveMeta, options) {
   const threats = [];
-  let riskScore = 12;
   const isHttps = protocol === 'https';
   const isIpHost = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
-  let sslTrust = isHttps && !isIpHost ? 'Trusted (TLS 1.3)' : 'Untrusted (HTTP Unencrypted)';
-  const sslValid = isHttps && !isIpHost;
-  
   const parts = hostname.split('.');
   const tld = parts.length > 1 ? '.' + parts[parts.length - 1] : '.local';
 
-  // 1. Live Fetch Status Assessment
-  if (liveMeta && liveMeta.live) {
-    if (liveMeta.status_code >= 400 && liveMeta.status_code < 500) {
-      riskScore += 15;
-      threats.push({ category: 'Live HTTP Status Warning', description: `Live web server returned client error HTTP ${liveMeta.status_code}` });
-    }
+  // Recognized reputable enterprise root domains & suffixes
+  const reputableDomains = [
+    'github.com', 'google.com', 'microsoft.com', 'apple.com', 'amazon.com',
+    'facebook.com', 'twitter.com', 'x.com', 'linkedin.com', 'youtube.com',
+    'wikipedia.org', 'stackoverflow.com', 'cloudflare.com', 'vercel.app',
+    'netlify.app', 'react.dev', 'vitejs.dev', 'npmjs.com', 'mozilla.org'
+  ];
+
+  const isReputable = reputableDomains.some(dom => 
+    hostname === dom || hostname.endsWith('.' + dom)
+  );
+
+  let riskScore = 0;
+  let sslTrust = isHttps && !isIpHost ? 'Trusted (TLS 1.3)' : 'Untrusted (HTTP Unencrypted)';
+  const sslValid = isHttps && !isIpHost;
+
+  // Signal 1: Hostname Type (IP vs Domain)
+  if (isIpHost) {
+    riskScore += 35; // Base 35 for IP host
+    sslTrust = 'Untrusted / IP Host';
+    threats.push({
+      category: 'IP Hostname Direct Connection',
+      description: `URL uses raw IP address '${hostname}' instead of registered domain name`
+    });
+  } else if (isReputable) {
+    riskScore += 5; // Base 5 for verified reputable domain
+  } else {
+    riskScore += 10; // Base 10 for standard domain
   }
 
-  // 2. Suspicious TLDs
-  const suspiciousTlds = ['.xyz', '.top', '.tk', '.site', '.cf', '.online', '.info', '.biz', '.cc', '.club', '.space', '.work', '.click'];
-  if (suspiciousTlds.includes(tld)) {
-    riskScore += 32;
+  // Signal 2: Unencrypted HTTP Protocol
+  if (!isHttps) {
+    riskScore += 15;
     threats.push({
-      category: 'High-Risk TLD',
-      description: `Domain uses high-abuse top-level domain extension '${tld}'`
+      category: 'Unencrypted Protocol',
+      description: 'URL communicates over unencrypted HTTP protocol (vulnerable to eavesdropping)'
     });
   }
 
-  // 3. Typosquatting & Brand Spoofing Patterns
+  // Signal 3: Suspicious High-Abuse TLDs
+  const suspiciousTlds = ['.xyz', '.top', '.tk', '.site', '.cf', '.online', '.info', '.biz', '.cc', '.club', '.space', '.work', '.click'];
+  if (suspiciousTlds.includes(tld)) {
+    riskScore += 25;
+    threats.push({
+      category: 'High-Risk TLD',
+      description: `Domain uses high-abuse top-level extension '${tld}'`
+    });
+  }
+
+  // Signal 4: Typosquatting & Brand Spoofing
   const targetBrands = ['paypal', 'chase', 'google', 'apple', 'microsoft', 'binance', 'coinbase', 'netflix', 'amazon', 'facebook', 'instagram', 'bankofamerica', 'wellsfargo'];
   const authKeywords = ['login', 'signin', 'verify', 'secure', 'auth', 'update', 'billing', 'account', 'security', 'wallet', 'claim', 'support'];
 
@@ -250,9 +277,9 @@ function runLocalUrlAnalysis(targetUrl, hostname, protocol, path, liveMeta, opti
   }
 
   if (matchedBrand) {
-    const isOfficial = hostname === `${matchedBrand}.com` || hostname.endsWith(`.${matchedBrand}.com`) || hostname === `${matchedBrand}.org`;
-    if (!isOfficial) {
-      riskScore += 55;
+    const isOfficialBrand = isReputable || hostname === `${matchedBrand}.com` || hostname.endsWith(`.${matchedBrand}.com`) || hostname === `${matchedBrand}.org`;
+    if (!isOfficialBrand) {
+      riskScore += 45;
       threats.push({
         category: 'Typosquatting & Brand Spoof',
         description: `Domain mimics enterprise brand '${matchedBrand}' without valid ownership (${hostname})`
@@ -260,64 +287,46 @@ function runLocalUrlAnalysis(targetUrl, hostname, protocol, path, liveMeta, opti
     }
   }
 
-  if (matchedKeyword && matchedBrand && riskScore >= 50) {
+  if (matchedKeyword && matchedBrand && !isReputable) {
     riskScore += 20;
     threats.push({
       category: 'Credential Harvesting Vector',
-      description: `URL contains login/auth keywords '${matchedKeyword}' paired with brand spoofing`
+      description: `URL contains authentication keywords '${matchedKeyword}' paired with brand name`
     });
   }
 
-  // 4. IP Address Hostname Detection
-  if (isIpHost) {
-    riskScore += 45;
-    sslTrust = 'Untrusted / IP Host';
-    threats.push({
-      category: 'IP Hostname Execution',
-      description: `URL uses raw IP address '${hostname}' instead of registered domain name`
-    });
-  }
-
-  // 5. Unencrypted HTTP Check
-  if (protocol === 'http') {
-    riskScore += 25;
-    threats.push({
-      category: 'Unencrypted Protocol',
-      description: 'URL communicates over unencrypted HTTP protocol (vulnerable to MITM)'
-    });
-  }
-
-  // 6. Excessive Subdomains
-  if (parts.length >= 4) {
-    riskScore += 18;
+  // Signal 5: Excessive Subdomain Depth (for non-IP domains)
+  if (parts.length >= 4 && !isReputable && !isIpHost) {
+    riskScore += 15;
     threats.push({
       category: 'Deep Subdomain Nesting',
       description: `Domain contains excessive subdomain depth (${parts.length} levels)`
     });
   }
 
-  // Deterministic seed variation
-  let hash = 0;
-  for (let i = 0; i < targetUrl.length; i++) {
-    hash = ((hash << 5) - hash) + targetUrl.charCodeAt(i);
-    hash |= 0;
+  // Reputable domain cap (ensures verified domains stay LOW risk)
+  if (isReputable && isHttps) {
+    riskScore = Math.min(15, riskScore);
   }
-  const varSeed = Math.abs(hash) % 10;
-  riskScore += varSeed;
 
   riskScore = Math.min(100, Math.max(5, riskScore));
-  const riskLevel = riskScore >= 80 ? 'critical' : riskScore >= 60 ? 'high' : riskScore >= 35 ? 'medium' : 'low';
+  const riskLevel = riskScore >= 75 ? 'critical' : riskScore >= 55 ? 'high' : riskScore >= 35 ? 'medium' : 'low';
   const isBlocked = riskScore >= 75;
   const reputationScore = Math.max(0, 100 - riskScore);
 
   let explanation = '';
   if (threats.length > 0) {
-    explanation = `Security Warning [Risk Score ${riskScore}/100]: URL flagged with ${threats.length} threat indicators. Domain reputation: ${reputationScore}/100. SSL: ${sslTrust}. Live HTTP Status: ${liveMeta?.status_code || 'Unreachable'}.`;
+    explanation = `Security Analysis [Risk Score ${riskScore}/100 - ${riskLevel.toUpperCase()}]: Target URL flagged with ${threats.length} risk factor(s). Domain reputation: ${reputationScore}/100. SSL: ${sslTrust}. Signals: ${threats.map(t => t.category).join(', ')}.`;
   } else {
-    explanation = `URL passed security validation [Risk Score ${riskScore}/100]. Domain '${hostname}' verified clean with ${reputationScore}/100 reputation rating. SSL: ${sslTrust}. Live Server: '${liveMeta?.server || 'Standard'}'. Zero phishing indicators.`;
+    explanation = `Security Analysis [Risk Score ${riskScore}/100 - SAFE]: Domain '${hostname}' verified clean with ${reputationScore}/100 reputation rating. SSL: ${sslTrust}. Zero malicious heuristics detected.`;
   }
 
   const simulatedIps = ['104.21.48.110', '172.67.182.204', '185.220.101.4', '192.0.2.1', '198.51.100.14'];
+  let hash = 0;
+  for (let i = 0; i < targetUrl.length; i++) {
+    hash = ((hash << 5) - hash) + targetUrl.charCodeAt(i);
+    hash |= 0;
+  }
   const assignedIp = isIpHost ? hostname : simulatedIps[Math.abs(hash) % simulatedIps.length];
 
   return {
@@ -331,7 +340,8 @@ function runLocalUrlAnalysis(targetUrl, hostname, protocol, path, liveMeta, opti
       ssl_valid: sslValid,
       reputation_score: reputationScore,
       ip_address: assignedIp,
-      live_title: liveMeta?.page_title || 'N/A'
+      live_title: liveMeta?.page_title || 'N/A',
+      is_reputable_domain: isReputable
     },
     explanation,
     telemetry: {
@@ -339,7 +349,8 @@ function runLocalUrlAnalysis(targetUrl, hostname, protocol, path, liveMeta, opti
       protocol,
       subdomain_count: parts.length,
       path_length: path.length,
-      tld
+      tld,
+      signal_count: threats.length
     }
   };
 }
