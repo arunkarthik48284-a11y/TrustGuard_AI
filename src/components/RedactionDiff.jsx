@@ -1,8 +1,30 @@
 import React, { useMemo } from 'react';
 import { Lock, CheckCircle, ShieldAlert, ShieldCheck, AlertTriangle } from 'lucide-react';
 
+const HIGH_RISK_EMAIL_PREFIXES = ['admin', 'root', 'ceo', 'cfo', 'security', 'finance', 'payroll', 'billing', 'sysadmin', 'master', 'privkey', 'hr'];
+const SPAM_PHONE_PATTERNS = [/0000000000|1111111111|2222222222|3333333333|4444444444|5555555555|6666666666|7777777777|8888888888|9999999999|1234567890|0123456789|9876543210/];
+
 const PII_PATTERNS = [
+  { 
+    type: 'HIGH_RISK_EMAIL', 
+    customCheck: (val) => {
+      const lower = val.toLowerCase();
+      const parts = lower.split('@');
+      return HIGH_RISK_EMAIL_PREFIXES.some(p => parts[0] === p || parts[0].startsWith(p + '.')) || lower.includes('.gov') || lower.includes('.mil');
+    },
+    regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, 
+    color: 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/40 font-extrabold' 
+  },
   { type: 'EMAIL', regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, color: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30' },
+  { 
+    type: 'SPAM_PHONE', 
+    customCheck: (val) => {
+      const digits = val.replace(/\D/g, '');
+      return SPAM_PHONE_PATTERNS.some(rx => rx.test(digits));
+    },
+    regex: /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, 
+    color: 'bg-red-500/25 text-red-700 dark:text-red-300 border-red-500/40 font-extrabold' 
+  },
   { type: 'SSN', regex: /\b\d{3}-\d{2}-\d{4}\b/g, color: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30' },
   { type: 'CREDIT_CARD', regex: /\b(?:\d[ -]*?){13,16}\b/g, color: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' },
   { type: 'PHONE', regex: /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, color: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' },
@@ -19,13 +41,16 @@ const RedactionDiff = ({ text = '', maskedText = '', riskLevel = 'low' }) => {
       let match;
       const re = new RegExp(pattern.regex.source, 'g');
       while ((match = re.exec(text)) !== null) {
-        matches.push({
-          start: match.index,
-          end: match.index + match[0].length,
-          value: match[0],
-          type: pattern.type,
-          color: pattern.color
-        });
+        const val = match[0];
+        if (!pattern.customCheck || pattern.customCheck(val)) {
+          matches.push({
+            start: match.index,
+            end: match.index + val.length,
+            value: val,
+            type: pattern.type,
+            color: pattern.color
+          });
+        }
       }
     });
 
