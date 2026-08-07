@@ -10,6 +10,7 @@ import {
   Globe,
   Sliders,
   Bot,
+  Database,
   ShieldCheck,
   Cpu,
   Send,
@@ -209,59 +210,77 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Launch Differentiator Action Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div
             onClick={() => navigate('/agentic-intercept')}
             className="p-4 rounded-2xl bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/30 cursor-pointer transition-all flex items-center justify-between group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold shrink-0">
                 <Bot className="w-5 h-5" strokeWidth={1.5} />
               </div>
-              <div>
-                <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                  Agentic Tool Interceptor
+              <div className="truncate">
+                <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                  Agentic Interceptor
                 </h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Demo agent tool-call exfiltration defense</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Exfiltration defense</p>
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-indigo-500 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-indigo-500 group-hover:translate-x-1 transition-transform shrink-0" />
+          </div>
+
+          <div
+            onClick={() => navigate('/breach-intel')}
+            className="p-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/30 cursor-pointer transition-all flex items-center justify-between group"
+          >
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold shrink-0">
+                <Database className="w-5 h-5" strokeWidth={1.5} />
+              </div>
+              <div className="truncate">
+                <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors truncate">
+                  Breach Intelligence
+                </h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Check domain history</p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform shrink-0" />
           </div>
 
           <div
             onClick={() => navigate('/scanner')}
             className="p-4 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/30 cursor-pointer transition-all flex items-center justify-between group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
                 <ScanLine className="w-5 h-5" strokeWidth={1.5} />
               </div>
-              <div>
-                <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                  Live Redaction Linter
+              <div className="truncate">
+                <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                  Redaction Linter
                 </h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Test real-time PII & prompt injection</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">PII & prompt injection</p>
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-emerald-500 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-emerald-500 group-hover:translate-x-1 transition-transform shrink-0" />
           </div>
 
           <div
             onClick={() => navigate('/policies')}
-            className="p-4 rounded-2xl bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/30 cursor-pointer transition-all flex items-center justify-between group"
+            className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 cursor-pointer transition-all flex items-center justify-between group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold shrink-0">
                 <Sliders className="w-5 h-5" strokeWidth={1.5} />
               </div>
-              <div>
-                <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+              <div className="truncate">
+                <h4 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors truncate">
                   Security Guardrails
                 </h4>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Configure sensitivity & risk ceiling</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Risk & sensitivity ceiling</p>
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-amber-500 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform shrink-0" />
           </div>
         </div>
 

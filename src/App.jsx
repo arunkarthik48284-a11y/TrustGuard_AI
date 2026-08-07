@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Scanner from './pages/Scanner';
 import URLScannerPage from './pages/URLScannerPage';
 import AgenticInterceptPage from './pages/AgenticInterceptPage';
+import BreachIntelPage from './pages/BreachIntelPage';
 import Policies from './pages/Policies';
 import AuditLogs from './pages/AuditLogs';
 import Settings from './pages/Settings';
@@ -69,6 +70,7 @@ const App = () => {
               <Route path="/scanner" element={<Scanner />} />
               <Route path="/agentic-intercept" element={<AgenticInterceptPage />} />
               <Route path="/url-scanner" element={<URLScannerPage />} />
+              <Route path="/breach-intel" element={<BreachIntelPage />} />
               <Route path="/policies" element={<Policies />} />
               <Route path="/audit-logs" element={<AuditLogs />} />
               <Route path="/settings" element={<Settings />} />

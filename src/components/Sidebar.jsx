@@ -6,6 +6,7 @@ import {
   ScanLine, 
   Globe,
   Bot,
+  Database,
   SlidersHorizontal, 
   FileSpreadsheet, 
   Settings, 
@@ -26,6 +27,7 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
     { label: 'AI Guardrail Scanner', path: '/scanner', icon: ScanLine },
     { label: 'Agentic Tool Interceptor', path: '/agentic-intercept', icon: Bot },
     { label: 'URL Security Scanner', path: '/url-scanner', icon: Globe },
+    { label: 'Breach Intelligence', path: '/breach-intel', icon: Database },
     { label: 'Security Policies', path: '/policies', icon: SlidersHorizontal },
     { label: 'Audit Logs & Compliance', path: '/audit-logs', icon: FileSpreadsheet },
     { label: 'Settings & API Keys', path: '/settings', icon: Settings },
@@ -101,41 +103,42 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
                 }
               >
                 <div className="flex items-center gap-3">
-                  <Icon className="w-4 h-4" strokeWidth={1.5} />
+                  <Icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
                   <span>{item.label}</span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 opacity-40" strokeWidth={1.5} />
+                <ChevronRight className="w-3.5 h-3.5 opacity-50 shrink-0" strokeWidth={1.5} />
               </NavLink>
             );
           })}
         </nav>
       </div>
 
-      {/* Footer User Profile Section */}
-      <div className="p-3.5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
-        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 min-h-[44px]">
+      {/* User Info & Footer Section */}
+      <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
-              {user?.email?.charAt(0).toUpperCase() || 'A'}
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0">
+              {user?.name ? user.name[0].toUpperCase() : 'A'}
             </div>
             <div className="truncate">
-              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{user?.email || 'admin@trustguard.ai'}</p>
-              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium tracking-wide flex items-center gap-1 uppercase">
-                <Lock className="w-2.5 h-2.5" strokeWidth={1.5} /> {user?.role || 'admin'}
-              </p>
+              <span className="text-xs font-bold text-slate-900 dark:text-slate-200 block truncate">{user?.name || 'Security Admin'}</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 block truncate font-mono">{user?.email || 'admin@trustguard.ai'}</span>
             </div>
           </div>
-
           <button
-            onClick={() => {
-              setMobileOpen(false);
-              logout();
-            }}
-            title="Sign out of TrustGuard"
-            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors min-h-[36px] flex items-center justify-center"
+            onClick={logout}
+            className="p-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors shrink-0"
+            title="Log Out"
           >
             <LogOut className="w-4 h-4" strokeWidth={1.5} />
           </button>
+        </div>
+
+        <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 px-1 font-mono">
+          <span>Engine v2.4.0</span>
+          <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Security Active
+          </span>
         </div>
       </div>
     </div>
@@ -143,24 +146,18 @@ const Sidebar = ({ mobileOpen = false, setMobileOpen = () => {} }) => {
 
   return (
     <>
-      {/* Desktop Fixed Sidebar */}
-      <aside className="hidden md:flex w-64 h-screen sticky top-0 z-30 shrink-0">
+      {/* Desktop Sidebar (Fixed Left) */}
+      <aside className="hidden md:block w-64 h-screen sticky top-0 shrink-0 z-30">
         {sidebarContent}
       </aside>
 
-      {/* Mobile Collapsible Navigation Drawer */}
+      {/* Mobile Drawer Overlay */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop Blur Overlay */}
-          <div
-            onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
-          />
-
-          {/* Sliding Drawer Container */}
-          <div className="relative z-10 w-72 max-w-[85vw] h-full shadow-2xl animate-in slide-in-from-left duration-200">
+        <div className="md:hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex">
+          <div className="w-72 h-full bg-white dark:bg-slate-950">
             {sidebarContent}
           </div>
+          <div className="flex-1" onClick={() => setMobileOpen(false)}></div>
         </div>
       )}
     </>

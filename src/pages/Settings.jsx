@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
-import { Key, ShieldCheck, Copy, Check, Eye, EyeOff, Save, RefreshCw, Radio, Sparkles } from 'lucide-react';
+import { Key, ShieldCheck, Copy, Check, Eye, EyeOff, Save, RefreshCw, Radio, Sparkles, Database } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useOutletContext } from 'react-router-dom';
 
@@ -9,9 +9,14 @@ const Settings = () => {
   const [apiKeyInput, setApiKeyInput] = useState(
     typeof window !== 'undefined' ? localStorage.getItem('trustguard_live_api_key') || '' : ''
   );
+  const [hibpKeyInput, setHibpKeyInput] = useState(
+    typeof window !== 'undefined' ? localStorage.getItem('hibp_api_key') || '' : ''
+  );
   const [showKey, setShowKey] = useState(false);
+  const [showHibpKey, setShowHibpKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const [savedKeyMsg, setSavedKeyMsg] = useState('');
+  const [savedHibpKeyMsg, setSavedHibpKeyMsg] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('https://api.acmesecurity.io/webhooks/trustguard');
   const [savedWebhookMsg, setSavedWebhookMsg] = useState(false);
   const outletContext = useOutletContext();
@@ -26,6 +31,17 @@ const Settings = () => {
       setSavedKeyMsg('Live Protection API Key saved and activated!');
     }
     setTimeout(() => setSavedKeyMsg(''), 3000);
+  };
+
+  const handleSaveHibpKey = () => {
+    if (!hibpKeyInput.trim()) {
+      localStorage.removeItem('hibp_api_key');
+      setSavedHibpKeyMsg('Removed HIBP key. Operating in simulated threat intelligence fallback mode.');
+    } else {
+      localStorage.setItem('hibp_api_key', hibpKeyInput.trim());
+      setSavedHibpKeyMsg('Have I Been Pwned API Key saved! Real breach lookups activated.');
+    }
+    setTimeout(() => setSavedHibpKeyMsg(''), 3000);
   };
 
   const copyKey = () => {
@@ -53,7 +69,7 @@ const Settings = () => {
           <div>
             <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100">Organization Settings</h2>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Manage your API authorization keys, security webhooks, and active firewall posture.
+              Manage your API authorization keys, breach threat intelligence integrations, and active firewall posture.
             </p>
           </div>
 
@@ -134,8 +150,54 @@ const Settings = () => {
             </div>
           </div>
 
-          {/* Webhooks & Incident Alerts */}
+          {/* Breach Intelligence HIBP API Key Card */}
           <div className="bg-white dark:bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2">
+              <Database className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Breach Intelligence API Key</h3>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              Configure your <strong>Have I Been Pwned (HIBP v3)</strong> API key to query live breach databases. Leave empty to use simulated threat modeling.
+            </p>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">HIBP API v3 Key</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type={showHibpKey ? 'text' : 'password'}
+                  value={hibpKeyInput}
+                  onChange={(e) => setHibpKeyInput(e.target.value)}
+                  placeholder="Paste HIBP API key or leave empty for simulated fallback"
+                  className="w-full bg-slate-50 dark:bg-slate-950 text-amber-700 dark:text-amber-400 font-mono text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-amber-500/40 min-h-[44px]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowHibpKey(!showHibpKey)}
+                  className="p-3 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800 min-h-[44px] flex items-center justify-center shrink-0"
+                >
+                  {showHibpKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {savedHibpKeyMsg && (
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 animate-fadeIn">
+                  {savedHibpKeyMsg}
+                </p>
+              )}
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={handleSaveHibpKey}
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 min-h-[40px]"
+              >
+                <Save className="w-4 h-4" /> Save Breach Intel Key
+              </button>
+            </div>
+          </div>
+
+          {/* Webhooks & Incident Alerts */}
+          <div className="bg-white dark:bg-slate-900/70 backdrop-blur-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm md:col-span-2">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Real-Time Incident Webhooks</h3>
