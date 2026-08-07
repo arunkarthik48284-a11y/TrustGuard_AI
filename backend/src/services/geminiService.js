@@ -270,11 +270,14 @@ function runDynamicAnalysis(inputText, piiList, opts) {
         }
         return acc + 50;
       }
-      if (item.type === 'IBAN_FINANCIAL' || item.type === 'DATE_OF_BIRTH') {
+      if (item.type === 'IBAN_FINANCIAL' || item.type === 'DATE_OF_BIRTH' || item.isBulkPhone) {
         hasMediumPii = true;
-        return acc + 20;
+        if (item.isBulkPhone && !threats.some(t => t.category === 'Bulk Phone List Exposure')) {
+          threats.push({ category: 'Bulk Phone List Exposure', description: 'Flagged bulk phone list leak payload (3+ phone numbers)' });
+        }
+        return acc + 25;
       }
-      // Low sensitivity PII (EMAIL, PHONE_NUMBER, IP_ADDRESS)
+      // Low sensitivity PII (EMAIL, PHONE, PHONE_NUMBER, IP_ADDRESS)
       return acc + 8;
     }, 0);
 

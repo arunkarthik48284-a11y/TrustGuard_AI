@@ -1,7 +1,7 @@
 /**
  * TrustGuard AI - Real-Time PII & Sensitive Data Redaction Engine
  * Detects and dynamically masks Emails (High Risk vs Low Risk), SSNs, Credit Cards, API Keys,
- * Spam Phone numbers, Standard Phone numbers (max 10 digits), IP addresses, and custom tokens.
+ * Spam Phone numbers, Standard Phone numbers (+1, +91, international, 10-digit), IP addresses, and IBANs.
  */
 
 // Privileged / High Risk Email Prefixes & Domains
@@ -60,7 +60,7 @@ const PII_PATTERNS = [
       const cleanDigits = match.replace(/\D/g, '');
       return SPAM_PHONE_PATTERNS.some(rx => rx.test(match) || rx.test(cleanDigits));
     },
-    regex: /\b\d{10}\b|(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g,
+    regex: /(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b|\b\d{10}\b/g,
     maskFn: (match) => {
       const clean = match.replace(/\D/g, '');
       const last4 = clean.slice(-4) || '9999';
@@ -91,13 +91,13 @@ const PII_PATTERNS = [
     maskFn: (match) => `[API_KEY_REDACTED: ${match.slice(0, 4)}...${match.slice(-4)}]`
   },
   {
-    type: 'PHONE_NUMBER',
-    regex: /\b\d{10}\b|(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g,
+    type: 'PHONE',
+    regex: /(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b|\b\d{10}\b/g,
     maskFn: (match) => {
       const digits = match.replace(/\D/g, '');
       const last4 = digits.slice(-4) || 'XXXX';
       const hasPlus = match.startsWith('+');
-      return `[PHONE_REDACTED: ${hasPlus ? '+' : ''}***-***-${last4}]`;
+      return `[REDACTED_PHONE: ${hasPlus ? '+' : ''}***-***-${last4}]`;
     }
   },
   {
@@ -143,6 +143,11 @@ function scanAndMaskPII(text, enabledMasking = true) {
   const allEmails = text.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g) || [];
   const isBulkEmail = allEmails.length >= 3;
 
+  // Check for Bulk Phone Leak (3 or more phone numbers)
+  const phoneRx = /(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b|\b\d{10}\b/g;
+  const allPhones = text.match(phoneRx) || [];
+  const isBulkPhone = allPhones.length >= 3;
+
   for (const item of PII_PATTERNS) {
     const rxMatch = new RegExp(item.regex.source, 'g');
     const matches = text.match(rxMatch);
@@ -154,7 +159,8 @@ function scanAndMaskPII(text, enabledMasking = true) {
             piiDetected.push({
               type: item.type,
               value: match,
-              isBulkEmail
+              isBulkEmail,
+              isBulkPhone
             });
           }
         }
@@ -174,7 +180,8 @@ function scanAndMaskPII(text, enabledMasking = true) {
     maskedText: maskedText,
     pii_detected: piiDetected,
     detectedPII: piiDetected,
-    isBulkEmail
+    isBulkEmail,
+    isBulkPhone
   };
 }
 
