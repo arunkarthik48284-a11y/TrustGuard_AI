@@ -31,27 +31,10 @@ const Dashboard = () => {
   const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [trustScore, setTrustScore] = useState(0);
   const [secondsAgo, setSecondsAgo] = useState(0);
   const navigate = useNavigate();
   const outletContext = useOutletContext();
   const setMobileOpen = outletContext?.setMobileOpen;
-
-  // Animated Count Up for Live Trust Index Score (0 -> 94)
-  useEffect(() => {
-    let current = 0;
-    const target = 94;
-    const interval = setInterval(() => {
-      current += 4;
-      if (current >= target) {
-        current = target;
-        clearInterval(interval);
-      }
-      setTrustScore(current);
-    }, 40);
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Real-time "Updated Xs ago" ticker
   useEffect(() => {
@@ -134,18 +117,6 @@ const Dashboard = () => {
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Real-time firewall inspecting incoming prompts, blocking prompt injection attacks, redacting sensitive PII tokens, and auditing compliance across your LLM pipelines.
               </p>
-            </div>
-
-            {/* Animated Live Trust Score Gauge */}
-            <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0 shadow-sm">
-              <RiskGauge score={trustScore} size={90} strokeWidth={8} />
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">Live Trust Index</span>
-                <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{trustScore} / 100</span>
-                <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-slate-400" /> Updated {secondsAgo}s ago
-                </p>
-              </div>
             </div>
           </div>
         </div>
