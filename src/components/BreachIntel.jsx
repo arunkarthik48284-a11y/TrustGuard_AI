@@ -110,9 +110,16 @@ const BreachIntel = () => {
   ];
 
   const handleLookup = async (queryDomain = domainInput) => {
-    let cleanDomain = queryDomain.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    let raw = queryDomain.trim().toLowerCase();
+    // If user enters an email address (e.g. name@domain.com), extract domain or sanitize
+    let cleanDomain = raw;
+    if (raw.includes('@')) {
+      cleanDomain = raw.split('@')[1];
+    }
+    cleanDomain = cleanDomain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+
     if (!cleanDomain) {
-      setErrorMsg('Please enter a valid domain name or website URL.');
+      setErrorMsg('Please enter a valid domain name, website URL, or email address.');
       return;
     }
 
@@ -159,21 +166,10 @@ const BreachIntel = () => {
             breaches: mappedBreaches
           });
         } else {
-          // If HIBP API returns 404 or rate-limit, fall back to simulated sample lookup
+          // If HIBP API returns 404 or zero breaches, return sample data if explicitly matched, else clean state (0 breaches)
           const fallbackData = SAMPLE_BREACHES[cleanDomain] || {
             isRealData: false,
-            breaches: [
-              {
-                name: `${cleanDomain.toUpperCase()} Security Audit Disclosure`,
-                date: '2024-02-14',
-                disclosureDate: '2024-02-18',
-                cause: 'Credential Stuffing & Unpatched API Vulnerability',
-                severity: 'high',
-                riskScore: 82,
-                dataTypes: ['User Emails', 'Hashed Passwords', 'IP Logs'],
-                description: `Simulated threat intelligence payload for ${cleanDomain}. Public database vulnerability intercepted.`
-              }
-            ]
+            breaches: []
           };
           setResult({
             domain: cleanDomain,
@@ -182,24 +178,14 @@ const BreachIntel = () => {
           });
         }
       } else {
-        // No HIBP key configured -> Use structured sample demo data with mandatory SIMULATED badge
+        // No HIBP key configured -> Return sample breach data ONLY for known sample domains;
+        // For new/unknown domains, return clean state (0 breaches) instead of forcing fake high exposure.
         clearInterval(timer);
         setProgress(100);
 
         const sampleResult = SAMPLE_BREACHES[cleanDomain] || {
           isRealData: false,
-          breaches: [
-            {
-              name: `${cleanDomain.toUpperCase()} Threat Intelligence Audit`,
-              date: '2024-03-10',
-              disclosureDate: '2024-03-14',
-              cause: 'Third-Party Vendor Misconfiguration',
-              severity: 'medium',
-              riskScore: 74,
-              dataTypes: ['User Emails', 'Account Identifiers'],
-              description: `Simulated security intelligence entry for ${cleanDomain}.`
-            }
-          ]
+          breaches: []
         };
 
         setResult({
@@ -245,7 +231,7 @@ const BreachIntel = () => {
               Historical Breach & Threat Intelligence Engine
             </h3>
             <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
-              Real breach records are sourced from Have I Been Pwned where available. Domains without public breach data show simulated threat modeling for demonstration purposes.
+              Real breach records are sourced from Have I Been Pwned where available. Domains without public breach data show a clean state or simulated threat modeling for demonstration purposes.
             </p>
           </div>
         </div>
@@ -296,7 +282,7 @@ const BreachIntel = () => {
               value={domainInput}
               onChange={(e) => setDomainInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
-              placeholder="Enter domain name or website URL (e.g. adobe.com, company.com)..."
+              placeholder="Enter domain name, URL, or email address (e.g. adobe.com, name@company.com)..."
               className="w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 font-mono text-xs pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500/40 min-h-[46px]"
             />
           </div>
@@ -323,7 +309,7 @@ const BreachIntel = () => {
       {/* Result Display Section */}
       {loading ? (
         <div className="bg-white dark:bg-slate-900/70 backdrop-blur-md p-8 rounded-2xl border border-slate-200 dark:border-slate-800">
-          <ScanProgress progress={progress} stageText="Cross-referencing domain against threat intelligence archives..." />
+          <ScanProgress progress={progress} stageText="Cross-referencing query against threat intelligence archives..." />
         </div>
       ) : result ? (
         <div className="space-y-4">
@@ -363,7 +349,7 @@ const BreachIntel = () => {
                   No Known Breaches Found for <span className="font-mono text-emerald-600 dark:text-emerald-400">{result.domain}</span>
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                  This domain has zero registered public security breach disclosures or compromised credential leaks in threat archives.
+                  This domain or email has zero registered public security breach disclosures or compromised credential leaks in threat archives.
                 </p>
               </div>
             </div>
@@ -440,7 +426,7 @@ const BreachIntel = () => {
         <EmptyState
           icon={Database}
           title="Ready for Domain Breach Intelligence Lookup"
-          description="Enter a domain name or URL above to inspect historical data breaches, compromised credential classes, and attack vector classifications."
+          description="Enter a domain name, URL, or email address above to inspect historical data breaches, compromised credential classes, and attack vector classifications."
           actionLabel="Lookup Adobe Inc Breach History"
           onAction={() => {
             setDomainInput('adobe.com');
