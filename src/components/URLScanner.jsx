@@ -55,19 +55,19 @@ const URLScanner = () => {
       clearInterval(timer);
       setProgress(100);
 
-      const evaluation = response?.data?.evaluation || response?.data?.data?.evaluation || response?.data || {
+      const evaluation = response?.data?.evaluation || (response?.data?.risk_score !== undefined ? response.data : null) || {
         target_url: targetUrl,
         domain: 'parsed-domain.com',
         protocol: 'https',
-        security_score: 15,
-        risk_level: 'high',
-        is_blocked: true,
-        threats_detected: ['Phishing Heuristic Detected', 'Unregistered Brand Subdomain'],
+        risk_score: 12,
+        risk_level: 'low',
+        is_blocked: false,
+        threats_detected: [],
         domain_info: {
-          registrar: 'NameCheap Inc',
-          created_days_ago: 4,
-          ssl_valid: false,
-          ip_address: '185.220.101.4'
+          registrar: 'Enterprise Domain Trust',
+          created_days_ago: 1200,
+          ssl_valid: true,
+          ip_address: '172.67.182.204'
         }
       };
 
@@ -239,14 +239,14 @@ const URLScanner = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <StatusBadge level={scanResult.risk_level || 'low'} isBlocked={Boolean(scanResult.is_blocked)} />
-                <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                  Security Score: {scanResult.security_score || scanResult.risk_score || 85}/100
+                <span className={`text-xs font-mono font-bold ${(scanResult.risk_score ?? 12) >= 60 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                  Threat Risk Score: {scanResult.risk_score ?? scanResult.security_score ?? 12}/100
                 </span>
               </div>
 
               {/* Risk Gauge & Telemetry Summary */}
               <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                <RiskGauge score={scanResult.security_score || 85} size={110} strokeWidth={9} />
+                <RiskGauge score={scanResult.risk_score ?? scanResult.security_score ?? 12} size={110} strokeWidth={9} />
                 <div className="flex-1 grid grid-cols-2 gap-3 w-full text-xs font-mono">
                   <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block font-sans">Domain</span>
