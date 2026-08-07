@@ -1,6 +1,6 @@
 /**
  * TrustGuard AI - Real-Time PII & Sensitive Data Redaction Engine
- * Detects and dynamically masks Emails, SSNs, Credit Cards, API Keys, Phone numbers, IP addresses, and custom tokens.
+ * Detects and dynamically masks Emails, SSNs, Credit Cards, API Keys, Phone numbers (max 10 digits), IP addresses, and custom tokens.
  */
 
 const PII_PATTERNS = [
@@ -42,7 +42,7 @@ const PII_PATTERNS = [
   },
   {
     type: 'PHONE_NUMBER',
-    regex: /\b\d{10,15}\b|(?:\+\d{1,4}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{2,5}[-.\s]?\d{3,6}\b/g,
+    regex: /\b\d{10}\b|(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g,
     maskFn: (match) => {
       const digits = match.replace(/\D/g, '');
       const last4 = digits.slice(-4) || 'XXXX';
@@ -64,6 +64,19 @@ const PII_PATTERNS = [
     maskFn: (match) => `[IBAN_REDACTED: ${match.slice(0, 4)}****${match.slice(-4)}]`
   }
 ];
+
+/**
+ * Validates whether input contains any mobile/phone number exceeding 10 digits
+ */
+function validateMobileNumbers(text) {
+  if (!text || typeof text !== 'string') return null;
+  // Match any digit sequence of 11 or more contiguous digits (e.g. 987654321012)
+  const invalidMatches = text.match(/\b\d{11,}\b/g);
+  if (invalidMatches && invalidMatches.length > 0) {
+    return `Invalid mobile number: "${invalidMatches[0]}" contains ${invalidMatches[0].length} digits. Standard mobile numbers must not exceed 10 digits.`;
+  }
+  return null;
+}
 
 /**
  * Scan input text for sensitive PII data and return detected items & masked text.
@@ -106,5 +119,6 @@ function scanAndMaskPII(text, enabledMasking = true) {
 
 module.exports = {
   scanAndMaskPII,
-  detectAndMaskPII: scanAndMaskPII
+  detectAndMaskPII: scanAndMaskPII,
+  validateMobileNumbers
 };

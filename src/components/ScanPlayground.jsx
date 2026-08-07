@@ -45,7 +45,7 @@ const ScanPlayground = () => {
   const [scanResult, setScanResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [copied, setCopied] = useState(false);
-  const [displayedRiskScore, setDisplayedRiskScore] = useState(92);
+  const [displayedRiskScore, setDisplayedRiskScore] = useState(5);
   const fileInputRef = useRef(null);
 
   const samplePrompts = [
@@ -64,13 +64,21 @@ const ScanPlayground = () => {
   ];
 
   const animateRiskScoreDrop = (targetScore) => {
-    let startScore = 92;
-    const step = Math.max(1, Math.ceil((startScore - targetScore) / 15));
+    let startScore = displayedRiskScore || 5;
+    const step = Math.max(1, Math.ceil(Math.abs(startScore - targetScore) / 15));
     const timer = setInterval(() => {
-      startScore -= step;
-      if (startScore <= targetScore) {
-        startScore = targetScore;
-        clearInterval(timer);
+      if (startScore > targetScore) {
+        startScore -= step;
+        if (startScore <= targetScore) {
+          startScore = targetScore;
+          clearInterval(timer);
+        }
+      } else {
+        startScore += step;
+        if (startScore >= targetScore) {
+          startScore = targetScore;
+          clearInterval(timer);
+        }
       }
       setDisplayedRiskScore(startScore);
     }, 35);
@@ -142,11 +150,19 @@ const ScanPlayground = () => {
   const handleScan = async () => {
     if (!inputText.trim()) return;
 
+    // Mobile number validation (> 10 digits check)
+    const overflowPhoneMatches = inputText.match(/\b\d{11,}\b/g);
+    if (overflowPhoneMatches && overflowPhoneMatches.length > 0) {
+      setErrorMsg(`Invalid mobile number: Phone number "${overflowPhoneMatches[0]}" contains ${overflowPhoneMatches[0].length} digits. Standard mobile numbers must not exceed 10 digits.`);
+      setScanning(false);
+      return;
+    }
+
     setScanning(true);
     setProgress(25);
     setScanResult(null);
     setErrorMsg('');
-    setDisplayedRiskScore(92);
+    setDisplayedRiskScore(displayedRiskScore || 5);
 
     const timer = setInterval(() => {
       setProgress((prev) => (prev >= 85 ? 85 : prev + 20));
@@ -415,7 +431,7 @@ const ScanPlayground = () => {
           {scanning ? (
             <ScanProgress progress={progress} stageText="Intercepting Security Payload with Gemini AI..." />
           ) : activeTab === 'diff' ? (
-            <RedactionDiff text={inputText} maskedText={scanResult?.masked_text || ''} />
+            <RedactionDiff text={inputText} maskedText={scanResult?.masked_text || ''} riskLevel={scanResult?.risk_level || 'low'} />
           ) : activeTab === 'contrast' ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between">

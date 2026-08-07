@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Lock, CheckCircle, ShieldAlert } from 'lucide-react';
+import { Lock, CheckCircle, ShieldAlert, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 const PII_PATTERNS = [
   { type: 'EMAIL', regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, color: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30' },
@@ -10,7 +10,7 @@ const PII_PATTERNS = [
   { type: 'IBAN', regex: /\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b/g, color: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30' }
 ];
 
-const RedactionDiff = ({ text = '', maskedText = '' }) => {
+const RedactionDiff = ({ text = '', maskedText = '', riskLevel = 'low' }) => {
   const { highlightedTokens, count, sanitizedResult } = useMemo(() => {
     if (!text) return { highlightedTokens: [], count: 0, sanitizedResult: '' };
 
@@ -81,6 +81,8 @@ const RedactionDiff = ({ text = '', maskedText = '' }) => {
     };
   }, [text, maskedText]);
 
+  const level = (riskLevel || 'low').toLowerCase();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -100,9 +102,19 @@ const RedactionDiff = ({ text = '', maskedText = '' }) => {
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
           <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">
             <span>Raw Unsanitized Payload</span>
-            <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
-              <ShieldAlert className="w-3.5 h-3.5" /> High Exposure Risk
-            </span>
+            {level === 'high' || level === 'critical' ? (
+              <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                <ShieldAlert className="w-3.5 h-3.5" /> High Exposure Risk
+              </span>
+            ) : level === 'medium' ? (
+              <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5" /> Medium Exposure Risk
+              </span>
+            ) : (
+              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" /> Low Exposure Risk
+              </span>
+            )}
           </div>
           <div className="font-mono text-xs leading-relaxed text-slate-900 dark:text-slate-200 whitespace-pre-wrap min-h-[120px] max-h-60 overflow-y-auto p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
             {text ? highlightedTokens : <span className="text-slate-400 italic">Type or paste prompt text to see live entity highlighting...</span>}

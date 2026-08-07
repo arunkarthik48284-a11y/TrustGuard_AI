@@ -1,4 +1,4 @@
-const { scanAndMaskPII } = require('../services/piiEngine');
+const { scanAndMaskPII, validateMobileNumbers } = require('../services/piiEngine');
 const { analyzeSecurityPayload } = require('../services/geminiService');
 const { analyzeUrlPayload } = require('../services/urlScanService');
 const { query } = require('../config/db');
@@ -10,6 +10,12 @@ async function scanPayload(req, res) {
 
     if (!input_text || typeof input_text !== 'string' || !input_text.trim()) {
       return res.status(400).json({ error: 'Input text cannot be empty.' });
+    }
+
+    // Check for invalid mobile number (> 10 digits)
+    const mobileErr = validateMobileNumbers(input_text);
+    if (mobileErr) {
+      return res.status(400).json({ error: mobileErr });
     }
 
     const options = body.options || {};
